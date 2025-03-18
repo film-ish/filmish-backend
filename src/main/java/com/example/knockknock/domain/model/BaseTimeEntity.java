@@ -16,11 +16,10 @@ import java.time.Instant;
 public abstract class BaseTimeEntity {
 
     @CreatedDate
-    @Column(name="created_at", updatable = false)
+    @Column(name="created_at", updatable = false, columnDefinition = "TIMESTAMP")
     private Instant created_at;
 
     @LastModifiedDate
-    @Column(name="updated_at")
+    @Column(name="updated_at", columnDefinition = "TIMESTAMP")
     private Instant updated_at;
-
 }

@@ -20,7 +20,7 @@ public class QnaComment extends BaseTimeEntity {
     @Column(name="content", nullable = false)
     private String content;
 
-    @Column(name="deleted_at")
+    @Column(name="deleted_at", columnDefinition = "TIMESTAMP")
     private Instant deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)

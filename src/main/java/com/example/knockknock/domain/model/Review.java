@@ -28,7 +28,7 @@ public class Review extends BaseTimeEntity {
     @Column(name="views", nullable = false)
     private int views;
 
-    @Column(name="deleted_at")
+    @Column(name="deleted_at", columnDefinition = "TIMESTAMP")
     private Instant deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
