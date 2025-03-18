@@ -1,13 +1,13 @@
 package com.example.knockknock.domain.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Builder
 public class LikeCommercial {
     @Id
@@ -17,10 +17,10 @@ public class LikeCommercial {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @Column(name = "user_id", nullable = false)
-    private User userId;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "commercial_id")
-    @Column(name = "commercial_id", nullable = false)
-    private CommercialMovie commercialId;
+    @Column(name = "commercial_movie_id", nullable = false)
+    private CommercialMovie commercialMovie;
 }

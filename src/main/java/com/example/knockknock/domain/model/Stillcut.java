@@ -17,6 +17,6 @@ public class Stillcut {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "indie_id")
-    @Column(name = "indie_id", nullable = false)
-    private IndieMovie indieId;
+    @Column(name = "indie_movie_id", nullable = false)
+    private IndieMovie indieMovie;
 }

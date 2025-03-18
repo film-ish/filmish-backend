@@ -1,14 +1,14 @@
 package com.example.knockknock.domain.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Builder
 public class RateCount {
     @Id
@@ -21,6 +21,6 @@ public class RateCount {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "indie_id")
-    @Column (name = "indie_id", nullable = false)
-    private IndieMovie indieId;
+    @Column (name = "indie_movie_id", nullable = false)
+    private IndieMovie indieMovie;
 }
