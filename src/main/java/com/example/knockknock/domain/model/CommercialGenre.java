@@ -7,16 +7,18 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Keyword {
+public class CommercialGenre {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "genre_id")
+    @Column(name = "genre_id", nullable = false)
+    private Genre genre;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "indie_id")
-    @Column(name = "indie_movie_id", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private IndieMovie indieMovie;
 }

@@ -1,17 +1,21 @@
 package com.example.knockknock.domain.model;
 
-import jakarta.persistence.Column;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
+import java.util.Date;
 
+@Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Builder
 public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true, length = 100, nullable = false)
@@ -23,7 +27,7 @@ public class User {
     @Column(unique = true, length = 100, nullable = false)
     private String nickname;
 
-    private LocalDate birth;
+    private Date birth;
 
     private String image;
 
