@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.LocalDate;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -22,7 +22,7 @@ public class IndieMovie {
     private String plot;
 
     @Column(name = "pub_date")
-    private LocalDate pubDate;
+    private Date pubDate;
 
     @Column(name = "running_time")
     private int runningTime;

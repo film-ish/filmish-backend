@@ -3,6 +3,7 @@ package com.example.knockknock.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 /**
@@ -28,14 +29,14 @@ public class Review extends BaseTimeEntity {
     private int views;
 
     @Column(name="deleted_at")
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="user_id", nullable = false)
     private User user;
 
     @Builder
-    public Review(String title, String content, int views, LocalDateTime deletedAt, User user) {
+    public Review(String title, String content, int views, Instant deletedAt, User user) {
         this.title = title;
         this.content = content;
         this.views = views;

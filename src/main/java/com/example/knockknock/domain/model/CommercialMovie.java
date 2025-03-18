@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -21,6 +21,6 @@ public class CommercialMovie {
     private String plot;
 
     @Column(name = "pub_date")
-    private LocalDate pubDate;
+    private Date pubDate;
     private String poster;
 }

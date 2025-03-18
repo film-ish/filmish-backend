@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -26,7 +27,7 @@ public class User {
     @Column(unique = true, length = 100, nullable = false)
     private String nickname;
 
-    private LocalDate birth;
+    private Date birth;
 
     private String image;
 

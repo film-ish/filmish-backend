@@ -3,6 +3,8 @@ package com.example.knockknock.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,7 +24,7 @@ public class Qna extends BaseTimeEntity {
     private String content;
 
     @Column(name="deleted_at")
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="maker_id", nullable = false)
@@ -33,7 +35,7 @@ public class Qna extends BaseTimeEntity {
     private User user;
 
     @Builder
-    public Qna(String title, String content, LocalDateTime deletedAt, Maker maker, User user) {
+    public Qna(String title, String content, Instant deletedAt, Maker maker, User user) {
         this.title = title;
         this.content = content;
         this.deletedAt = deletedAt;
