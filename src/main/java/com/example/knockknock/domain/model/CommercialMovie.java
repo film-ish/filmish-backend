@@ -4,19 +4,23 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
-public class Stillcut {
+public class CommercialMovie {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String image;
+    private String title;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "indie_id")
-    @Column(name = "indie_id", nullable = false)
-    private IndieMovie indieId;
+    @Column(columnDefinition = "TEXT")
+    private String plot;
+
+    @Column(name = "pub_date")
+    private LocalDate pubDate;
+    private String poster;
 }

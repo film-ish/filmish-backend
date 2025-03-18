@@ -1,26 +1,24 @@
 package com.example.knockknock.domain.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter
 @Setter
-@Builder
-public class RateCount {
+public class CommercialGenre {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ColumnDefault("0")
-    private int count;
-    private float rate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "genre_id")
+    @Column(name = "genre_id", nullable = false)
+    private Genre genreId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "indie_id")
-    @Column (name = "indie_id", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private IndieMovie indieId;
 }

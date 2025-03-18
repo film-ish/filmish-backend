@@ -7,13 +7,12 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Genre {
+public class Platform {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, length = 100, nullable = false)
+    @Column(length = 100)
     private String name;
-
-    private String image;
+    private String link;
 }

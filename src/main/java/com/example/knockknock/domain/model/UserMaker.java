@@ -1,24 +1,24 @@
 package com.example.knockknock.domain.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Getter
-@Builder
-public class LikeIndie {
+@Setter
+public class UserMaker {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "indie_id")
-    @Column(name = "indie_id", nullable = false)
-    private IndieMovie indieId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne
     @JoinColumn(name = "user_id")
     @Column(name = "user_id", nullable = false)
     private User userId;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "maker_id")
+    @Column(name = "maker_id", nullable = false)
+    private Maker makerId;
 }
