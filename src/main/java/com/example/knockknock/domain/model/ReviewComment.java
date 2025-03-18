@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,14 +34,25 @@ public class ReviewComment extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="parent_comment_id")
-    private ReviewComment reviewComment;
+    private ReviewComment parentComment;
+
+    @OneToMany(mappedBy = "parentComment")
+    private List<ReviewComment> childComments = new ArrayList<>();
 
     @Builder
-    public ReviewComment(String content, Instant deletedAt, User user, Review review, ReviewComment reviewComment) {
+    public ReviewComment(String content, Instant deletedAt, User user, Review review, ReviewComment parentComment) {
         this.content = content;
         this.deletedAt = deletedAt;
         this.user = user;
         this.review = review;
-        this.reviewComment = reviewComment;
+        this.parentComment = parentComment;
+    }
+
+    // 부모 댓글 설정 메서드
+    public void setParentComment(ReviewComment parentComment) {
+        this.parentComment = parentComment;
+        if (parentComment != null) {
+            parentComment.getChildComments().add(this);
+        }
     }
 }

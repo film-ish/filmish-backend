@@ -2,6 +2,7 @@ package com.example.knockknock.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ public class Review extends BaseTimeEntity {
     private String content;
 
     @Column(name="views", nullable = false)
+    @ColumnDefault("0")
     private int views;
 
     @Column(name="deleted_at", columnDefinition = "TIMESTAMP")
