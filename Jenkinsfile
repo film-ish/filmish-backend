@@ -21,14 +21,14 @@ pipeline {
             mattermostSend(
                 endpoint: 'https://meeting.ssafy.com/hooks/wuqodhw37jnejccnc1bsjso7pc',
                 channel: 'gang',
-                text: "✅ 빌드 성공! 🎉 \n프로젝트: *knockknock-back*\n브랜치: *${env.BRANCH_NAME}*\n[빌드 로그 확인](<${env.BUILD_URL}>)"
+                message: "✅ 빌드 성공! 🎉 \n프로젝트: *knockknock-back*\n브랜치: *${env.BRANCH_NAME}*\n[빌드 로그 확인](<${env.BUILD_URL}>)"
             )
         }
         failure {
             mattermostSend(
                 endpoint: 'https://meeting.ssafy.com/hooks/wuqodhw37jnejccnc1bsjso7pc',
                 channel: 'gang',
-                text: "❌ 빌드 실패... 🚨 \n프로젝트: *knockknock-back*\n브랜치: *${env.BRANCH_NAME}*\n[빌드 로그 확인](<${env.BUILD_URL}>)"
+                message: "❌ 빌드 실패... 🚨 \n프로젝트: *knockknock-back*\n브랜치: *${env.BRANCH_NAME}*\n[빌드 로그 확인](<${env.BUILD_URL}>)"
             )
         }
     }
