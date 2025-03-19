@@ -2,16 +2,42 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
+        stage('Build & Test') {
             steps {
-                echo '빌드 실행 중...'
-                // 여기에 빌드 명령어 추가
+                echo '빌드 및 테스트 실행 중...'
+                sh './gradlew build'
             }
         }
-        stage('Test') {
+
+        stage('Docker 이미지 생성') {
             steps {
-                echo '테스트 실행 중...'
-                // 여기에 테스트 실행 명령어 추가
+                echo 'Docker 이미지 생성 중...'
+                // Jenkins에서 빌드된 JAR 파일을 Dockerfile에 전달하기 위해 build-arg 사용
+                sh 'docker build --build-arg JAR_FILE=build/libs/*.jar -t imoong/knockknock-backend:latest .'
+            }
+        }
+
+        stage('Docker Hub 로그인 및 푸시') {
+            steps {
+                echo 'Docker Hub에 이미지 푸시 중...'
+                withCredentials([usernamePassword(credentialsId: 'Docker-hub',
+                                                  usernameVariable: 'DOCKER_HUB_USER',
+                                                  passwordVariable: 'DOCKER_HUB_PASS')]) {
+                    sh 'echo $DOCKER_HUB_PASS | docker login -u $DOCKER_HUB_USER --password-stdin'
+                    sh 'docker push imoong/knockknock-backend:latest'
+                }
+            }
+            post {
+                always {
+                    sh 'docker logout'
+                }
+            }
+        }
+
+        stage('배포') {
+            steps {
+                echo '배포 실행 중...'
+                sh 'ssh ubuntu@j12d207.p.ssafy.io "cd /home/ubuntu/knockknock && ./scripts/deploy.sh backend"'
             }
         }
     }
