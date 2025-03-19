@@ -5,9 +5,11 @@ pipeline {
         stage('Build & Test') {
             steps {
                 echo '빌드 및 테스트 실행 중...'
+                sh 'chmod +x ./gradlew' // 실행 권한 추가
                 sh './gradlew build'
             }
         }
+
 
         stage('Docker 이미지 생성') {
             steps {
