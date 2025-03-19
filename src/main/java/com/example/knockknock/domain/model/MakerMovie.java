@@ -13,12 +13,10 @@ public class MakerMovie {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "maker_id")
-    @Column(name = "maker_id", nullable = false)
+    @JoinColumn(name = "maker_id", nullable = false)
     private Maker maker;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "indie_id")
-    @Column(name = "indie_movie_id", nullable = false)
+    @JoinColumn(name = "indie_id", nullable = false)
     private IndieMovie indieMovie;
 }

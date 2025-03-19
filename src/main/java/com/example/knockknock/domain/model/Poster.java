@@ -15,7 +15,6 @@ public class Poster {
     private String poster;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "indie_id")
-    @Column(name = "indie_movie_id", nullable = false)
+    @JoinColumn(name = "indie_id", nullable = false)
     private IndieMovie indieMovie;
 }

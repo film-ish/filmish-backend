@@ -13,12 +13,10 @@ public class UserMaker {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "user_id")
-    @Column(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "maker_id")
-    @Column(name = "maker_id", nullable = false)
+    @JoinColumn(name = "maker_id", nullable = false)
     private Maker maker;
 }

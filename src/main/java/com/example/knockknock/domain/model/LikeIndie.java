@@ -14,12 +14,10 @@ public class LikeIndie {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "indie_id")
-    @Column(name = "indie_movie_id", nullable = false)
+    @JoinColumn(name = "indie_id", nullable = false)
     private IndieMovie indieMovie;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    @Column(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 }

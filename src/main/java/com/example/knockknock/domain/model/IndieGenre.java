@@ -13,12 +13,10 @@ public class IndieGenre {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "genre_id")
-    @Column(name = "genre_id", nullable = false)
+    @JoinColumn(name = "genre_id", nullable = false)
     private Genre genre;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "indie_id")
-    @Column(name = "indie_id", nullable = false)
+    @JoinColumn(name = "indie_id", nullable = false)
     private IndieMovie indieMovie;
 }
