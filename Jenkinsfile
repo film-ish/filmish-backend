@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        DB_URL = credentials('DB_URL')
+        DB_USERNAME = credentials('DB_USERNAME')
+        DB_PASSWORD = credentials('DB_PASSWORD')
+    }
+
     stages {
         stage('Build & Test') {
             steps {
@@ -9,7 +15,6 @@ pipeline {
                 sh './gradlew build'
             }
         }
-
 
         stage('Docker 이미지 생성') {
             steps {
@@ -39,7 +44,17 @@ pipeline {
         stage('배포') {
             steps {
                 echo '배포 실행 중...'
-                sh 'ssh ubuntu@j12d207.p.ssafy.io "cd /home/ubuntu/knockknock && ./scripts/deploy.sh backend"'
+                sh '''
+                    # 백엔드 .env 파일 생성
+                    cat > /home/ubuntu/knockknock/backend.env << EOL
+        DB_URL=${DB_URL}
+        DB_USERNAME=${DB_USERNAME}
+        DB_PASSWORD=${DB_PASSWORD}
+        EOL
+
+                    # 배포 스크립트 실행
+                    cd /home/ubuntu/knockknock && ./scripts/deploy.sh backend
+                '''
             }
         }
     }
