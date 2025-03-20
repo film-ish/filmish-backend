@@ -14,6 +14,4 @@ public class Genre {
 
     @Column(unique = true, length = 100, nullable = false)
     private String name;
-
-    private String image;
 }

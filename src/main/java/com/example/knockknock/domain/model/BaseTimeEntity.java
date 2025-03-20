@@ -17,9 +17,28 @@ public abstract class BaseTimeEntity {
 
     @CreatedDate
     @Column(name="created_at", updatable = false, columnDefinition = "TIMESTAMP")
-    private Instant created_at;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column(name="updated_at", columnDefinition = "TIMESTAMP")
-    private Instant updated_at;
+    private Instant updatedAt;
+
+    @Column(name="deleted_at", columnDefinition = "TIMESTAMP")
+    private Instant deletedAt;
+
+    // 삭제 여부 확인 메서드
+    public boolean isSoftDeleted() {
+        return deletedAt != null;
+    }
+
+    // 삭제 처리 메서드
+    protected void deleteSoftly(Instant deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    // 삭제 취소 메서드
+    protected void undoDeletion() {
+        this.deletedAt = null;
+    }
+
 }

@@ -3,6 +3,8 @@ package com.example.knockknock.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -14,6 +16,8 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@SQLDelete(sql = "UPDATE qna SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@Where(clause = "deleted_at IS NULL")
 public class Review extends BaseTimeEntity {
     @Id
     @Column(name="id", nullable = false)
@@ -30,19 +34,15 @@ public class Review extends BaseTimeEntity {
     @ColumnDefault("0")
     private int views;
 
-    @Column(name="deleted_at", columnDefinition = "TIMESTAMP")
-    private Instant deletedAt;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="user_id", nullable = false)
     private User user;
 
     @Builder
-    public Review(String title, String content, int views, Instant deletedAt, User user) {
+    public Review(String title, String content, int views, User user) {
         this.title = title;
         this.content = content;
         this.views = views;
-        this.deletedAt = deletedAt;
         this.user = user;
     }
 }

@@ -13,6 +13,7 @@ public class Poster {
     private Long id;
 
     private String poster;
+    private String thumbnail;       // 썸네일 이미지
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "indie_id", nullable = false)
