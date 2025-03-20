@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Build & Test') {
             steps {
-                echo '빌드 및 테스트 실행 중...'
+                echo '백엔드 빌드 및 테스트 실행 중...'
                 sh 'chmod +x ./gradlew' // 실행 권한 추가
                 sh './gradlew build'
             }
@@ -43,20 +43,20 @@ pipeline {
 
         stage('배포') {
             steps {
-                echo '배포 실행 중...'
+                echo '백엔드 배포 실행 중...'
                 sh '''
                     # 배포 대상 디렉토리 존재 여부 확인 후 생성
-                    mkdir -p /home/ubuntu/knockknock
+                    mkdir -p /home/ubuntu/knockknock/backend
 
                     # 백엔드 .env 파일 생성
-                    cat > /home/ubuntu/knockknock/backend.env << EOL
+                    cat > /home/ubuntu/knockknock/backend/backend.env << EOL
 DB_URL=${DB_URL}
 DB_USERNAME=${DB_USERNAME}
 DB_PASSWORD=${DB_PASSWORD}
 EOL
 
                     # 배포 스크립트 실행
-                    cd /home/ubuntu/knockknock && ./scripts/deploy.sh backend
+                    cd /home/ubuntu/knockknock/backend && ./scripts/deploy.sh
                 '''
             }
         }
@@ -67,14 +67,14 @@ EOL
             mattermostSend(
                 endpoint: 'https://meeting.ssafy.com/hooks/wuqodhw37jnejccnc1bsjso7pc',
                 channel: 'gang',
-                message: "✅ 빌드 성공! 😀 \n프로젝트: *KNOCK-KNOCK BACK*\n브랜치: *develop -> main*\n[빌드 로그 확인](<${env.BUILD_URL}>)"
+                message: "✅ 백엔드 빌드 성공! 😀 \n프로젝트: *KNOCK-KNOCK BACK*\n브랜치: *develop -> main*\n[빌드 로그 확인](<${env.BUILD_URL}>)"
             )
         }
         failure {
             mattermostSend(
                 endpoint: 'https://meeting.ssafy.com/hooks/wuqodhw37jnejccnc1bsjso7pc',
                 channel: 'gang',
-                message: "❌ 빌드 실패... 🚨 \n프로젝트: *KNOCK-KNOCK BACK*\n브랜치: *develop -> main*\n[빌드 로그 확인](<${env.BUILD_URL}>)"
+                message: "❌ 백엔드 빌드 실패... 🚨 \n프로젝트: *KNOCK-KNOCK BACK*\n브랜치: *develop -> main*\n[빌드 로그 확인](<${env.BUILD_URL}>)"
             )
         }
     }
