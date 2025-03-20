@@ -30,11 +30,11 @@ public class User {
     private Date birth;
 
     private String image;
+    private String head_image;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "ENUM('ADMIN','MAKER','USER') DEFAULT 'USER'")
     private Role role;
-
 
     @ColumnDefault("true")
     @Column(columnDefinition = "TINYINT(1)")
