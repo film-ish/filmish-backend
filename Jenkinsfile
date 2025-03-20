@@ -45,12 +45,15 @@ pipeline {
             steps {
                 echo '배포 실행 중...'
                 sh '''
+                    # 배포 대상 디렉토리 존재 여부 확인 후 생성
+                    mkdir -p /home/ubuntu/knockknock
+
                     # 백엔드 .env 파일 생성
                     cat > /home/ubuntu/knockknock/backend.env << EOL
-        DB_URL=${DB_URL}
-        DB_USERNAME=${DB_USERNAME}
-        DB_PASSWORD=${DB_PASSWORD}
-        EOL
+DB_URL=${DB_URL}
+DB_USERNAME=${DB_USERNAME}
+DB_PASSWORD=${DB_PASSWORD}
+EOL
 
                     # 배포 스크립트 실행
                     cd /home/ubuntu/knockknock && ./scripts/deploy.sh backend
