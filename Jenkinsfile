@@ -84,7 +84,7 @@ EOL
                     color: '#36a64f',
                     text: ":white_check_mark: **백엔드 빌드 성공!** :tada:\n" +
                           "--------------------------------------------------\n" +
-                          ":mag: [빌드 로그 확인g](${env.BUILD_URL})\n" +
+                          ":mag: [빌드 로그 확인](${env.BUILD_URL})\n" +
                           ":chart_with_upwards_trend: [트렌드 보기](${env.BUILD_URL}trend)\n" +
                           ":page_with_curl: [소스 코드 변경사항](${env.BUILD_URL}changes)",
                     message: "**프로젝트:** KNOCK-KNOCK BACKEND\n" +
