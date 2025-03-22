@@ -31,13 +31,6 @@ public class IndieMovie {
     @Column(name = "average_rating")
     private float averageRating;
 
-    @ColumnDefault("0")
-    private int audiences;
-
-    @Column(name = "movie_type", nullable = false)
-    private MovieType movieType;
-
-    // kmdb의 'movie_id + movie_seq' 의미
-    @Column(name = "kmdb_id")
-    private Long kmdbId;
+    @Column(length = 50, name = "movie_type", nullable = false)
+    private String type;
 }

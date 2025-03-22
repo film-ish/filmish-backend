@@ -17,11 +17,4 @@ public class Maker {
     private String name;
 
     private String image;
-
-    @ColumnDefault("0")
-    @Column(name = "total_Contents")
-    private int totalContents;
-
-    @Column(nullable = false)
-    private Type type;
 }

@@ -13,16 +13,16 @@ public class ReviewImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "image_path", nullable = false)
-    private String imagePath;
+    @Column(nullable = false)
+    private String image;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "review_id", nullable = false)
     private Review review;
 
     @Builder
-    public ReviewImage(String imagePath, Review review) {
-        this.imagePath = imagePath;
+    public ReviewImage(String image, Review review) {
+        this.image = image;
         this.review = review;
     }
 }
