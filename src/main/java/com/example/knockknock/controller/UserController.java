@@ -24,7 +24,7 @@ public class UserController {
         return userService.join(request);
     }
 
-    @GetMapping("/{userId}")
+    @DeleteMapping("/{userId}")
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 시도합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 탈퇴함"),
@@ -49,5 +49,14 @@ public class UserController {
             return userService.checkNickname(nickname);
         }
         return null;
+    }
+
+    @GetMapping("/{userId}")
+    @Operation(summary = "회원 정보 조회", description = "회원 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함"),
+    })
+    public ApiResponse userInfo(@PathVariable Long userId){
+        return userService.userInfo(userId);
     }
 }

@@ -3,6 +3,8 @@ package com.example.knockknock.controller.response;
 import com.example.knockknock.entity.User;
 import lombok.*;
 
+import java.util.Date;
+
 @Data
 public class UserResponse {
     @Getter
@@ -25,4 +27,29 @@ public class UserResponse {
                     .build();
         }
     }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class UserInfoResponse{
+        private Long id;
+        private String nickname;
+        private String image;
+        private Date birth;
+        private String email;
+
+        public static UserInfoResponse of(User user){
+            return UserInfoResponse.builder()
+                    .id(user.getId())
+                    .nickname(user.getNickname())
+                    .image(user.getImage())
+                    .birth(user.getBirth())
+                    .email(user.getEmail())
+                    .build();
+        }
+    }
+
+
 }

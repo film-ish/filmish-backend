@@ -4,6 +4,7 @@ import com.example.knockknock.controller.request.UserRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.controller.response.ApiSuccessResponse;
 import com.example.knockknock.controller.response.ResponseCode;
+import com.example.knockknock.controller.response.UserResponse;
 import com.example.knockknock.entity.Role;
 import com.example.knockknock.entity.User;
 import com.example.knockknock.error.code.ErrorCode;
@@ -167,5 +168,14 @@ public class UserService {
         // 동일한 닉네임이 존재하지 않는다면,
         return ApiSuccessResponse.response(ResponseCode.Ok, "사용할 수 있는 닉네임입니다.",null);
     }
+
+    //회원 정보 조회
+    public ApiResponse userInfo(Long userId){
+        User userEntity = userRepository.findById(userId).get();
+        UserResponse.UserInfoResponse infoResponse = UserResponse.UserInfoResponse.of(userEntity);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회하였습니다.", infoResponse);
+    }
+
+
 
 }

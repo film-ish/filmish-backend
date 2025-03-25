@@ -1,6 +1,7 @@
 package com.example.knockknock.global.config.jwt;
 
 import com.example.knockknock.controller.request.UserRequest;
+import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.controller.response.ApiSuccessResponse;
 import com.example.knockknock.controller.response.ResponseCode;
 import com.example.knockknock.controller.response.UserResponse;
@@ -181,7 +182,7 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
             }
 
             UserResponse.LoginResponse loginResponse = UserResponse.LoginResponse.of(user);
-            ApiSuccessResponse apiSuccessResponse = ApiSuccessResponse.response(ResponseCode.Ok, "User login success!", loginResponse);
+            ApiResponse apiSuccessResponse = ApiSuccessResponse.response(ResponseCode.Ok, "User login success!", loginResponse);
 
             // 응답 설정 및 전송
             response.setHeader("access", access);
