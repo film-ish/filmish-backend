@@ -23,6 +23,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -135,5 +138,19 @@ public class UserService {
             return ApiErrorResponse.of(ErrorCode.AUTH_ERROR, "Invalid token");
         }
         // @Transactional 어노테이션을 사용하여 JPA가 트랜잭션 내에서 자동으로 변경 사항을 flush하여 DB에 반영함
+    }
+
+    public ApiResponse checkEmail(String email){
+        Optional<User> userEntity = userRepository.findByEmail(email);
+
+        // 동일한 이메일이 존재한다면,
+        if (!userEntity.isEmpty()){
+            Map<String, String> data = new HashMap<>();
+            data.put("email", email);
+            return ApiSuccessResponse.response(ResponseCode.Ok, "사용할 수 없는 이메일입니다.", data);
+        }
+
+        // 동일한 이메일이 존재하지 않는다면,
+        return ApiSuccessResponse.response(ResponseCode.Ok, "사용할 수 있는 이메일입니다.",null);
     }
 }

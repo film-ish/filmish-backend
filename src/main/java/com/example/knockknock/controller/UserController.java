@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,10 +31,18 @@ public class UserController {
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 시도합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 탈퇴함"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "access 토큰 값에 따라, 이미 로그아웃됨"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "토큰이 입력되지 않음")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "유효하지 않은 토큰"),
     })
     public void withdraw(@PathVariable Long userId, HttpServletRequest request, HttpServletResponse response){
         userService.withdraw(userId, request, response);
+    }
+    
+    @GetMapping("")
+    @Operation(summary = "이메일 중복 확인 조회", description = "이메일 중복 확인을 시도합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함"),
+    })
+    public ApiResponse checkEmail(@RequestParam(name = "email") String email){
+        return userService.checkEmail(email);
     }
 }
