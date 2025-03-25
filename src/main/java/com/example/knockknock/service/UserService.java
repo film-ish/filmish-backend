@@ -153,4 +153,19 @@ public class UserService {
         // 동일한 이메일이 존재하지 않는다면,
         return ApiSuccessResponse.response(ResponseCode.Ok, "사용할 수 있는 이메일입니다.",null);
     }
+
+    public ApiResponse checkNickname(String nickname){
+        Optional<User> userEntity = userRepository.findByNickname(nickname);
+
+        // 동일한 닉네임이 존재한다면,
+        if (!userEntity.isEmpty()){
+            Map<String, String> data = new HashMap<>();
+            data.put("nickname", nickname);
+            return ApiSuccessResponse.response(ResponseCode.Ok, "사용할 수 없는 닉네임입니다.", data);
+        }
+
+        // 동일한 닉네임이 존재하지 않는다면,
+        return ApiSuccessResponse.response(ResponseCode.Ok, "사용할 수 있는 닉네임입니다.",null);
+    }
+
 }
