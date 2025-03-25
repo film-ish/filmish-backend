@@ -1,5 +1,6 @@
 package com.example.knockknock.service;
 
+import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.request.UserRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.controller.response.ApiSuccessResponse;
@@ -19,10 +20,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -150,7 +151,6 @@ public class UserService {
             data.put("email", email);
             return ApiSuccessResponse.response(ResponseCode.Ok, "사용할 수 없는 이메일입니다.", data);
         }
-
         // 동일한 이메일이 존재하지 않는다면,
         return ApiSuccessResponse.response(ResponseCode.Ok, "사용할 수 있는 이메일입니다.",null);
     }
@@ -164,7 +164,6 @@ public class UserService {
             data.put("nickname", nickname);
             return ApiSuccessResponse.response(ResponseCode.Ok, "사용할 수 없는 닉네임입니다.", data);
         }
-
         // 동일한 닉네임이 존재하지 않는다면,
         return ApiSuccessResponse.response(ResponseCode.Ok, "사용할 수 있는 닉네임입니다.",null);
     }
@@ -176,6 +175,17 @@ public class UserService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회하였습니다.", infoResponse);
     }
 
-
-
+    // 비밀 번호 수정
+    public ApiResponse modifyPassword(Authentication authentication, String newPassword){
+        try{
+            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+            User userEntity = userRepository.findById(customUserDetails.getUserId()).get();
+            userEntity.setPassword(bCryptPasswordEncoder.encode(newPassword));
+            userRepository.save(userEntity);
+            return ApiSuccessResponse.response(ResponseCode.Ok, "비밀번호를 성공적으로 수정하였습니다.", null);
+        } catch (Exception e){
+            log.error("Failed to update password: " + e.getMessage());
+            return ApiErrorResponse.of(ErrorCode.SERVER_ERROR, "Failed to update password");
+        }
+    }
 }
