@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/users")
@@ -72,9 +73,8 @@ public class UserController {
     })
     public ApiResponse updateUser(@PathVariable Long userId,
                                   @ModelAttribute UserRequest.modifyRequest modifyRequest){
-        String nickname = modifyRequest.getNickname();
-        String image = modifyRequest.getImage();
-        return userService.updateUser(userId, nickname, image);
+
+        return userService.updateUser(userId, modifyRequest);
     }
 
 
