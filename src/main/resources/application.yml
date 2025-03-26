@@ -38,3 +38,6 @@ image:
     profile:
       width: 200
       height: 200
+
+springdoc:
+  show-login-endpoint: true
