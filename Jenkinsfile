@@ -5,6 +5,9 @@ pipeline {
         DB_URL = credentials('DB_URL')
         DB_USERNAME = credentials('DB_USERNAME')
         DB_PASSWORD = credentials('DB_PASSWORD')
+        REDIS_HOST = credentials('REDIS_HOST')
+        REDIS_PORT = credentials('REDIS_PORT')
+
     }
 
     stages {
@@ -53,6 +56,8 @@ pipeline {
 DB_URL=${DB_URL}
 DB_USERNAME=${DB_USERNAME}
 DB_PASSWORD=${DB_PASSWORD}
+REDIS_HOST=${REDIS_HOST}
+REDIS_PORT=${REDIS_PORT}
 EOL
 
                     # 배포 스크립트 실행
