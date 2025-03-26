@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Slf4j
@@ -45,12 +46,16 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final TokenListService tokenListService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final S3Service s3Service;
 
     @Value("${image.resize.profile.width}")
     private int profileWidth;
 
     @Value("${image.resize.profile.height}")
     private int profileHeight;
+
+    @Value("${spring.cloud.aws.s3.bucket}")
+    private String bucketName;
 
     // 회원가입
     public ApiResponse join(UserRequest.JoinRequest joinRequest) {
@@ -177,28 +182,83 @@ public class UserService {
     }
 
     // 회원 정보 수정
-    public ApiResponse updateUser(Long userId, String nickname, String image) {
-        String imagePath = null;
-        String compressedPath = null;
+    public ApiResponse updateUser(Long userId, UserRequest.modifyRequest modifyRequest) {
+        MultipartFile imageFile = modifyRequest.getImage();
+        String nickname = modifyRequest.getNickname();
 
-        byte[] compressed = compressImage(imagePath);
+        // 사용자 조회
+        User userEntity = userRepository.findById(userId).orElseThrow(() ->
+            new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        if (compressed == null) {
-            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미지 읽어오기 실패");
+        // 이미지가 없는 경우 닉네임만 업데이트
+        if (imageFile == null || imageFile.isEmpty()) {
+            userEntity.setNickname(nickname);
+            userRepository.save(userEntity);
+            return ApiSuccessResponse.response(ResponseCode.Ok, "닉네임 수정이 완료되었습니다.", null);
         }
 
-        //TODO
-        /*
-            byte로 압축된 이미지(compressed) 저장 경로 생성 필요
-            compressedPath = {압축 이미지 저장 경로}
-         */
+        try {
+            // 기존 이미지가 있다면 S3에서 삭제
+            if (userEntity.getImage() != null && !userEntity.getImage().isEmpty()) {
+                String oldImageKey = extractKeyFromUrl(userEntity.getImage());
+                if (oldImageKey != null) {
+                    s3Service.deleteFile(bucketName, oldImageKey);
+                }
+            }
 
-        User userEntity = userRepository.findById(userId).get();
-        userEntity.setNickname(nickname);
-        userEntity.setImage(imagePath);
-        userEntity.setHead_image(compressedPath);
-        userRepository.save(userEntity);
-        return ApiSuccessResponse.response(ResponseCode.Ok, "정보 수정이 완료되었습니다.", null);
+            // 기존 압축 이미지가 있다면 S3에서 삭제
+            if (userEntity.getHead_image() != null && !userEntity.getHead_image().isEmpty()) {
+                String oldCompressedKey = extractKeyFromUrl(userEntity.getHead_image());
+                if (oldCompressedKey != null) {
+                    s3Service.deleteFile(bucketName, oldCompressedKey);
+                }
+            }
+
+            // 원본 이미지 S3에 업로드
+            String originalFileName = imageFile.getOriginalFilename();
+            String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+            String originalKey = "images/original/" + userId + "_" + System.currentTimeMillis() + fileExtension;
+
+            // S3에 원본 이미지 업로드
+            s3Service.uploadFile(bucketName, originalKey, imageFile.getBytes(), imageFile.getContentType());
+            String imagePath = "https://" + bucketName + ".s3.amazonaws.com/" + originalKey;
+
+            // 이미지 압축
+            byte[] compressedImageBytes = compressImage(imageFile);
+            if (compressedImageBytes == null) {
+                return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미지 압축 실패");
+            }
+
+            // 압축 이미지 S3에 업로드
+            String compressedKey = "images/compressed/" + userId + "_" + System.currentTimeMillis() + ".jpg";
+            s3Service.uploadFile(bucketName, compressedKey, compressedImageBytes, "image/jpeg");
+            String compressedPath = "https://" + bucketName + ".s3.amazonaws.com/" + compressedKey;
+
+            // 사용자 정보 업데이트
+            userEntity.setNickname(nickname);
+            userEntity.setImage(imagePath);
+            userEntity.setHead_image(compressedPath);
+            userRepository.save(userEntity);
+
+            return ApiSuccessResponse.response(ResponseCode.Ok, "정보 수정이 완료되었습니다.", null);
+
+        } catch (IOException e) {
+            log.error("이미지 처리 중 오류 발생: ", e);
+            return ApiErrorResponse.of(ErrorCode.SERVER_ERROR, "이미지 처리 중 오류가 발생했습니다.");
+        }
+    }
+
+    // URL에서 S3 키를 추출하는 메서드
+    private String extractKeyFromUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return null;
+        }
+
+        String bucketPrefix = "https://" + bucketName + ".s3.amazonaws.com/";
+        if (url.startsWith(bucketPrefix)) {
+            return url.substring(bucketPrefix.length());
+        }
+        return null;
     }
 
     // 비밀 번호 수정
@@ -215,54 +275,58 @@ public class UserService {
         }
     }
 
-    // 이미지 압축
-    public byte[] compressImage(String imagePath) {
-        if (imagePath == null || imagePath.trim().isEmpty()) {
-            log.info("이미지 경로가 유효하지 않습니다.");
+    // MultipartFile을 압축하는 메서드
+    private byte[] compressImage(MultipartFile imageFile) {
+        if (imageFile == null || imageFile.isEmpty()) {
+            log.info("이미지 파일이 비어있습니다.");
             return null;
         }
 
-        // 파일 읽어오기
-        File inputFile = new File(imagePath);
-
-        // 파일 존재 여부 확인
-        if (!inputFile.exists()) {
-            log.info("지정된 경로에 파일이 존재하지 않습니다: " + imagePath);
-        }
-
-        BufferedImage originalImage = null;
-
-        // 원본 이미지 읽어오기
         try {
-            originalImage = ImageIO.read(inputFile);
-        } catch (IOException e) {
-            log.info("원본 이미지를 읽을 수 없습니다 : " + e);
-            return null;
-        }
+            // 원본 이미지 읽어오기
+            BufferedImage originalImage = ImageIO.read(imageFile.getInputStream());
 
-        // 이미지 읽기 실패 확인
-        if (originalImage == null) {
-            log.info("이미지를 읽을 수 없습니다: " + imagePath);
-        }
+            // 이미지 읽기 실패 확인
+            if (originalImage == null) {
+                log.info("이미지를 읽을 수 없습니다.");
+                return null;
+            }
 
-        // 새로운 크기의 빈 BufferedImage 생성
-        //TODO
-        // type을 어떻게 할 것인지?
-        BufferedImage resizedImage = new BufferedImage(profileWidth, profileHeight, originalImage.getType());
+            int width = originalImage.getWidth();
+            int height = originalImage.getHeight();
 
-        // Graphics2D를 사용하여 원본 이미지를 새 크기로 그림
-        Graphics2D g2d = resizedImage.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g2d.drawImage(originalImage, 0, 0, profileWidth, profileHeight, null);
-        g2d.dispose();                          // Graphics2D 리소스 해제
+            // 중앙에서 정사각형으로 자르기 위한 좌표 계산
+            int x = 0;
+            int y = 0;
+            int size = Math.min(width, height);
 
-        // 결과 이미지를 바이트 배열로 변환
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
+            if (width > height) {
+                // 가로가 더 길면 가운데를 기준으로 자르기
+                x = (width - height) / 2;
+                size = height;
+            } else if (height > width) {
+                // 세로가 더 길면 가운데를 기준으로 자르기
+                y = (height - width) / 2;
+                size = width;
+            }
+
+            // 중앙 부분 자르기
+            BufferedImage croppedImage = originalImage.getSubimage(x, y, size, size);
+
+            // 원하는 크기로 리사이징
+            BufferedImage resizedImage = new BufferedImage(profileWidth, profileHeight, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2d = resizedImage.createGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2d.drawImage(croppedImage, 0, 0, profileWidth, profileHeight, null);
+            g2d.dispose();
+
+            // 결과 이미지를 바이트 배열로 변환
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(resizedImage, "jpg", baos);
             return baos.toByteArray();
+
         } catch (IOException e) {
-            log.info("압축 이미지 저장 중 오류 발생 : " + e);
+            log.info("압축 이미지 생성 중 오류 발생 : " + e);
             return null;
         }
     }
