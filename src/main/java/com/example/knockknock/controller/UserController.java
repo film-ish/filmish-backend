@@ -2,8 +2,6 @@ package com.example.knockknock.controller;
 
 import com.example.knockknock.controller.request.UserRequest;
 import com.example.knockknock.controller.response.ApiResponse;
-import com.example.knockknock.error.code.ErrorCode;
-import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

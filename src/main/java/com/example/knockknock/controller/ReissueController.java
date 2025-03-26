@@ -1,5 +1,6 @@
 package com.example.knockknock.controller;
 
+import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.controller.response.ApiSuccessResponse;
 import com.example.knockknock.controller.response.ResponseCode;
 import com.example.knockknock.error.code.ErrorCode;
@@ -8,7 +9,6 @@ import com.example.knockknock.global.config.jwt.TokenProvider;
 import com.example.knockknock.service.TokenListService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,10 +41,10 @@ public class ReissueController {
     @Operation(summary = "Access token 재발행", description = "refresh 토큰을 기반으로 access 토큰을 재발행합니다.",
             security = {@SecurityRequirement(name = "access"), @SecurityRequirement(name = "refresh")})
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "재발행 성공"),
-            @ApiResponse(responseCode = "400", description = "refresh 토큰이 존재하지 않거나 유효하지 않음")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "재발행 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "refresh 토큰이 존재하지 않거나 유효하지 않음")
     })
-    public com.example.knockknock.controller.response.ApiResponse reissue(HttpServletRequest request, HttpServletResponse response){
+    public ApiResponse reissue(HttpServletRequest request, HttpServletResponse response){
         // get tokens
         String access = request.getHeader("access");
         String refresh = null;

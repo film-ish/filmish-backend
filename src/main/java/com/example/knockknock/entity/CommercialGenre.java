@@ -17,6 +17,6 @@ public class CommercialGenre {
     private Genre genre;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "indie_id", nullable = false)
-    private IndieMovie indieMovie;
+    @JoinColumn(name = "commercial_id", nullable = false)
+    private IndieMovie commercialMovie;
 }
