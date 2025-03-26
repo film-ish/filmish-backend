@@ -36,6 +36,22 @@ public class TokenProvider {
                 .getPayload().get("category", String.class);
     }
 
+    public String getNickname(String token){
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload().get("nickname", String.class);
+    }
+
+    public String getRole(String token){
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload().get("role", String.class);
+    }
+
     public Boolean isExpired(String token){
         return Jwts.parser().
                 verifyWith(secretKey)

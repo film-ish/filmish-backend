@@ -5,9 +5,6 @@ import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.error.code.ErrorCode;
 import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.service.UserService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,11 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/users")
@@ -63,6 +56,7 @@ public class UserController {
         return null;
     }
 
+    // 회원 정보 조회
     @GetMapping("/{userId}")
     @Operation(summary = "회원 정보 조회", description = "회원 정보를 조회합니다.")
     @ApiResponses(value = {
@@ -72,47 +66,29 @@ public class UserController {
         return userService.userInfo(userId);
     }
 
-    @PatchMapping("/password")
-    @Operation(summary = "비밀 번호 수정", description = "비밀 번호를 수정합니다.")
+    // 회원 정보 수정
+    @PatchMapping("/{userId}")
+    @Operation(summary = "회원 정보 수정", description = "회원 정보를 수정합니다.")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "비밀 번호 수정 완료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함"),
     })
-    public ApiResponse modifyPassword(HttpServletRequest request, Authentication authentication){
-        try {
-            // Read request body
-            byte[] inputStreamBytes = StreamUtils.copyToByteArray(request.getInputStream());
-            String requestBodyJsonString = new String(inputStreamBytes, StandardCharsets.UTF_8);
+    public ApiResponse updateUser(@PathVariable Long userId,
+                                  @ModelAttribute UserRequest.modifyRequest modifyRequest){
+        String nickname = modifyRequest.getNickname();
+        String image = modifyRequest.getImage();
+        return userService.updateUser(userId, nickname, image);
+    }
 
-            if (requestBodyJsonString.isEmpty()) {
-                log.error("body에 요청 값이 없습니다.");
-                return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "Empty request body");
-            }
 
-            // requestBody를 JSON으로 파싱하여 newPassword를 추출
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode jsonNode = mapper.readTree(requestBodyJsonString);
+    @PatchMapping("/password")
+    @Operation(summary = "비밀번호 수정", description = "비밀번호를 수정합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "비밀번호 수정 완료"),
+    })
+    public ApiResponse modifyPassword(@RequestBody UserRequest.passwordRequest passwordRequest,
+                                      Authentication authentication){
 
-            // 요청에 "newPassword"라는 키가 없으면
-            if (jsonNode == null || !jsonNode.has("newPassword")) {
-                log.error("요청에 newPassword 값이 없습니다.");
-                return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "New password is required");
-            }
-
-            String newPassword = jsonNode.get("newPassword").asText();
-
-            // "newPassword"라는 키의 값(value)이 없을 때
-            if (newPassword == null || newPassword.trim().isEmpty()) {
-                log.error("newPassword의 값이 입력되지 않았습니다.");
-                return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "New password must be entered");
-            }
-
-            return userService.modifyPassword(authentication, newPassword);
-        } catch (JsonProcessingException e) {
-            log.error("JSON 파싱 오류 발생: " + e);
-            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "Invalid JSON format");
-        } catch (IOException e) {
-            log.error("비밀 번호 요청 오류 발생: " + e);
-            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "Invalid request");
-        }
+        String newPassword = passwordRequest.getNewPassword();
+        return userService.modifyPassword(authentication, newPassword);
     }
 }

@@ -69,7 +69,7 @@ public class SecurityConfig{
                             .requestMatchers(HttpMethod.GET, "/swagger-ui.html").permitAll()
                             .requestMatchers(HttpMethod.GET, "/swagger-resources/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/webjars/**").permitAll()
-                            .requestMatchers("/", "/knockknock", "/users", "/users?**", "/users/login",
+                            .requestMatchers("/", "/knockknock", "/users", "/users?**", "/users/login", "/users/reissue",
                                     "/movies/{movieId}", "/movies/{movieId}/reviews", "reviews/{reviewId}", "/reviews/comments",
                                     "/makers/{makerId}", "/qna/{makerId}", "/qna/{qnaId}/comments", "/cinemas", "/platforms",
                                     "/actors", "/recommendation/genres", "/recommendation/rates").permitAll()

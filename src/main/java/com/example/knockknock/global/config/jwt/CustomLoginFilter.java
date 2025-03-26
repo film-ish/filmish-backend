@@ -170,9 +170,8 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
             String refresh = tokenProvider.createJwt("refresh", userEmail, nickname, role, REFRESH_TOKEN_EXPIRE_TIME);
 
             try {
-                // access token과 refresh Token Redis 저장
+                // access token Redis 저장
                 addToken("RT:AT:" + userEmail, access, ACCESS_TOKEN_EXPIRE_TIME);
-                addToken("RT:RT:" + userEmail, refresh, REFRESH_TOKEN_EXPIRE_TIME);
             } catch (Exception e) {
                 log.error("redis save failure");
                 ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.SERVER_ERROR, "Server Error");

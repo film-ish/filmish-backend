@@ -25,4 +25,17 @@ public class UserRequest {
         private String password;
     }
 
+    @Getter
+    @Setter
+    public static class modifyRequest {
+        private String nickname;
+        private String image;
+    }
+
+    @Getter
+    @Setter
+    public static class passwordRequest{
+        private String newPassword;
+    }
+
 }
