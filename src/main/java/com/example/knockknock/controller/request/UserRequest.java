@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import org.springframework.web.multipart.MultipartFile;
 
 public class UserRequest {
     @Getter
@@ -28,7 +29,7 @@ public class UserRequest {
     @Setter
     public static class modifyRequest {
         private String nickname;
-        private String image;
+        private MultipartFile image;
     }
 
     @Getter
