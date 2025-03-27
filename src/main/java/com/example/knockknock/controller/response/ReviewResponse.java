@@ -1,13 +1,10 @@
 package com.example.knockknock.controller.response;
 
-import com.example.knockknock.entity.IndieMovie;
 import com.example.knockknock.entity.Review;
 import lombok.*;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 public class ReviewResponse {
     @Getter

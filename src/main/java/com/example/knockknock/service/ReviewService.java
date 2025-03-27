@@ -3,17 +3,23 @@ package com.example.knockknock.service;
 import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.request.ReviewRequest;
 import com.example.knockknock.controller.response.*;
+import com.example.knockknock.entity.IndieMovie;
 import com.example.knockknock.entity.Review;
 import com.example.knockknock.entity.ReviewImage;
 import com.example.knockknock.entity.User;
 import com.example.knockknock.error.code.ErrorCode;
 import com.example.knockknock.error.response.ApiErrorResponse;
+import com.example.knockknock.repository.IndieMovieRepository;
 import com.example.knockknock.repository.ReviewImageRepository;
 import com.example.knockknock.repository.ReviewRepository;
 import com.example.knockknock.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,21 +38,47 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
+    private final IndieMovieRepository indieMovieRepository;
     private final S3Service s3Service;
 
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
+    
+    public ApiResponse reviewList(Long indieId, int pageNum, int pageSize){
+        Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<ReviewResponse.Detail> reviewPage = reviewRepository.findByIndieId(indieId, pageable)
+                .map(review -> {
+                    User writer = review.getUser();
 
+                    List<ReviewImage> imageList = null;
+                    Optional<List<ReviewImage>> images = reviewImageRepository.findByReviewId(review.getId());
+                    if (!images.isEmpty()){
+                        imageList = images.get();
+                    }
+                    return ReviewResponse.Detail.of(
+                            review,
+                            writer.getNickname(),
+                            writer.getHeadImage(),
+                            imageList.stream()
+                                    .map(ReviewImageResponse.Detail::of)
+                                    .toList()
+                    );
+                });
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
+    }
+    
     public ApiResponse writeReview(ReviewRequest.Write request, Authentication authentication){
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long userId = userDetails.getUserId();
         User user = userRepository.findById(userId).get();
+        IndieMovie indieMovie = indieMovieRepository.findById(request.getIndieId()).get();
 
         Review newReview = Review.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .views(0)
                 .user(user)
+                .indieMovie(indieMovie)
                 .createdAt(Instant.now())
                 .build();
 
@@ -66,7 +98,7 @@ public class ReviewService {
 
             reviewImageRepository.saveAll(reviewImages);
         }
-        return ApiSuccessResponse.response(ResponseCode.Created, "리뷰 등록되었습니다.", null);
+        return ApiSuccessResponse.response(ResponseCode.Created, "리뷰가 성공적으로 등록되었습니다.", null);
     }
 
     public ReviewImage uploadSingleImage(Review review, MultipartFile image){
@@ -107,7 +139,7 @@ public class ReviewService {
 
         reviewRepository.save(review);
 
-        return ApiSuccessResponse.response(ResponseCode.Ok, "게시물 수정이 완료되었습니다.", null);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "리뷰 수정이 완료되었습니다.", null);
     }
 
     public ApiResponse detailReview(Long reviewId){

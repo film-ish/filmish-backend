@@ -1,6 +1,7 @@
 package com.example.knockknock.controller.request;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,7 +18,7 @@ public class ReviewRequest {
     }
 
     @Getter
-    @Setter
+    @NoArgsConstructor
     public static class Modify{
         private String title;
         private String content;
