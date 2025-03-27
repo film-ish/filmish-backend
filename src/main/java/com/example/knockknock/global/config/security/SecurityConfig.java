@@ -108,14 +108,11 @@ public class SecurityConfig{
                         public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                             CorsConfiguration configuration = new CorsConfiguration();
 
-                            //configuration.setAllowedOrigins(Collections.singletonList("https://peachpitch.site"));
                             configuration.setAllowedOriginPatterns(Collections.singletonList("*")); // Websocket 때문에 바꾼 설정
                             configuration.setAllowedMethods(Collections.singletonList("*"));
                             configuration.setAllowCredentials(true);        // 프론트에서 credential 설정하면 true로 설정해줘야 함
                             configuration.setAllowedHeaders(Collections.singletonList("*"));
                             configuration.setMaxAge(3600L);
-
-                            //configuration.setExposedHeaders(Collections.singletonList("Authorization"));
                             configuration.setExposedHeaders(Arrays.asList("Authorization", "access", "userId", "email"));
                             return configuration;
                         }

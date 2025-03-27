@@ -31,6 +31,6 @@ public class IndieMovie {
     @Column(name = "average_rating")
     private float averageRating;
 
-    @Column(length = 50, name = "movie_type", nullable = false)
+    @Column(length = 50, nullable = false)
     private String type;
 }

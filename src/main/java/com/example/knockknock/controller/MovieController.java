@@ -8,10 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/movies")
@@ -28,5 +26,23 @@ public class MovieController {
     public ApiResponse likeIndie(@RequestBody MovieRequest.LikeIndieRequest request,
                                  Authentication authentication) {
         return movieService.likeIndie(request, authentication);
+    }
+
+    @DeleteMapping("/likes/{likeId}")
+    @Operation(summary = "보고싶어요 삭제", description = "독립 영화 보고싶어요를 삭제합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 삭제함")
+    })
+    public ApiResponse unlikeIndie(@PathVariable Long likeId){
+        return movieService.unlikeIndie(likeId);
+    }
+
+    @GetMapping("/{movieId}")
+    @Operation(summary = "영화 상세 정보 조회", description = "영화 상세 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
+    })
+    public ApiResponse movieInfo(@PathVariable Long movieId){
+        return movieService.movieInfo(movieId);
     }
 }

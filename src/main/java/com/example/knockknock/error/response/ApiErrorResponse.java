@@ -5,10 +5,12 @@ import com.example.knockknock.error.code.ErrorCode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.slf4j.Slf4j;
 
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Slf4j
 public class ApiErrorResponse extends ApiResponse {
     private ErrorCode code;
     public ApiErrorResponse(ErrorCode code, String message) {
@@ -17,6 +19,7 @@ public class ApiErrorResponse extends ApiResponse {
     }
 
     public static ApiErrorResponse of(ErrorCode errorCode, String message){
+        log.info("오류 메세지: " + message);
         return ApiErrorResponse.builder()
                 .code(errorCode)
                 .message(message)

@@ -185,10 +185,15 @@ public class UserService {
     public ApiResponse updateUser(Long userId, UserRequest.modifyRequest modifyRequest) {
         MultipartFile imageFile = modifyRequest.getImage();
         String nickname = modifyRequest.getNickname();
+        User userEntity = null;
 
         // 사용자 조회
-        User userEntity = userRepository.findById(userId).orElseThrow(() ->
-            new RuntimeException("사용자를 찾을 수 없습니다."));
+        try{
+            userEntity = userRepository.findById(userId).get();
+        } catch (RuntimeException e) {
+            log.info("사용자를 찾을 수 없습니다.");
+            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "사용자 정보가 존재하지 않습니다.");
+        }
 
         // 이미지가 없는 경우 닉네임만 업데이트
         if (imageFile == null || imageFile.isEmpty()) {
