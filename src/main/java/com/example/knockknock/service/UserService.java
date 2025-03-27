@@ -211,8 +211,8 @@ public class UserService {
             }
 
             // 기존 압축 이미지가 있다면 S3에서 삭제
-            if (userEntity.getHead_image() != null && !userEntity.getHead_image().isEmpty()) {
-                String oldCompressedKey = extractKeyFromUrl(userEntity.getHead_image());
+            if (userEntity.getHeadImage() != null && !userEntity.getHeadImage().isEmpty()) {
+                String oldCompressedKey = extractKeyFromUrl(userEntity.getHeadImage());
                 if (oldCompressedKey != null) {
                     s3Service.deleteFile(bucketName, oldCompressedKey);
                 }
@@ -241,7 +241,7 @@ public class UserService {
             // 사용자 정보 업데이트
             userEntity.setNickname(nickname);
             userEntity.setImage(imagePath);
-            userEntity.setHead_image(compressedPath);
+            userEntity.setHeadImage(compressedPath);
             userRepository.save(userEntity);
 
             return ApiSuccessResponse.response(ResponseCode.Ok, "정보 수정이 완료되었습니다.", null);

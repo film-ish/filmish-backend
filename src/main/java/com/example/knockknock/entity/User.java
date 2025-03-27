@@ -31,7 +31,7 @@ public class User {
     private Date birth;
 
     private String image;
-    private String head_image;
+    private String headImage;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "ENUM('ADMIN','MAKER','USER') DEFAULT 'USER'")

@@ -1,11 +1,8 @@
 package com.example.knockknock.service;
 
 import com.example.knockknock.controller.request.CustomUserDetails;
-import com.example.knockknock.controller.request.MovieRequest;
 import com.example.knockknock.controller.request.ReviewRequest;
-import com.example.knockknock.controller.response.ApiResponse;
-import com.example.knockknock.controller.response.ApiSuccessResponse;
-import com.example.knockknock.controller.response.ResponseCode;
+import com.example.knockknock.controller.response.*;
 import com.example.knockknock.entity.Review;
 import com.example.knockknock.entity.ReviewImage;
 import com.example.knockknock.entity.User;
@@ -85,7 +82,7 @@ public class ReviewService {
             String imagePath = "https://" + bucketName + ".s3.amazonaws.com/" + originalKey;
 
             ReviewImage reviewImage = ReviewImage.builder()
-                    .image(imagePath)
+                    .path(imagePath)
                     .review(review)
                     .build();
 
@@ -107,11 +104,27 @@ public class ReviewService {
         log.info("title = " + request.getTitle());
         log.info("content = " + request.getContent());
         review.setContent(request.getContent());
-        review.setViews(review.getViews() + 1);
 
         reviewRepository.save(review);
 
         return ApiSuccessResponse.response(ResponseCode.Ok, "게시물 수정이 완료되었습니다.", null);
+    }
 
+    public ApiResponse detailReview(Long reviewId){
+        Review review = reviewRepository.findById(reviewId).get();
+        List<ReviewImageResponse.Detail> images = null;
+        Optional<List<ReviewImage>> imageList = reviewImageRepository.findByReviewId(reviewId);
+        ReviewResponse.Detail reviewResponse = null;
+
+        if(!imageList.isEmpty()){
+            List<ReviewImage> allImages = imageList.get();
+            images = allImages.stream()
+                        .map(image -> {
+                            return ReviewImageResponse.Detail.of(image);
+                        })
+                        .collect(Collectors.toList());
+            reviewResponse = ReviewResponse.Detail.of(review, review.getUser().getNickname(), review.getUser().getHeadImage(), images);
+        }
+        return ApiSuccessResponse.response(ResponseCode.Ok, "영화 리뷰를 성공적으로 조회했습니다.", reviewResponse);
     }
 }

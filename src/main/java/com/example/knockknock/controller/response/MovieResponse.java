@@ -14,7 +14,7 @@ public class MovieResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
-    public static class Info{
+    public static class Detail {
         private Long id;
         private String title;
         private String plot;
@@ -26,8 +26,8 @@ public class MovieResponse {
         private List<Map<Long, String>> stillcuts;
         private List<MakerResponse.Role> makers;
 
-        public static MovieResponse.Info of(IndieMovie indieMovie, List<Map<Long, String>> stillcuts, List<MakerResponse.Role> makers){
-            return Info.builder()
+        public static Detail of(IndieMovie indieMovie, List<Map<Long, String>> stillcuts, List<MakerResponse.Role> makers){
+            return Detail.builder()
                     .id(indieMovie.getId())
                     .title(indieMovie.getTitle())
                     .plot(indieMovie.getPlot())

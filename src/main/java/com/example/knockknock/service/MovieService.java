@@ -9,13 +9,9 @@ import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -125,8 +121,8 @@ public class MovieService {
         }
 
         log.info("영화 조회가 완료되었습니다.");
-        MovieResponse.Info info = MovieResponse.Info.of(indieMovie.get(), stillcuts, roles);
-        return ApiSuccessResponse.response(ResponseCode.Ok, "영화 조회가 완료되었습니다.", info);
+        MovieResponse.Detail detail = MovieResponse.Detail.of(indieMovie.get(), stillcuts, roles);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "영화 조회가 완료되었습니다.", detail);
     }
 
 

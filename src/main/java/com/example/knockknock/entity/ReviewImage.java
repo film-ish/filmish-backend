@@ -14,15 +14,15 @@ public class ReviewImage {
     private Long id;
 
     @Column(nullable = false)
-    private String image;
+    private String path;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "review_id", nullable = false)
     private Review review;
 
     @Builder
-    public ReviewImage(String image, Review review) {
-        this.image = image;
+    public ReviewImage(String path, Review review) {
+        this.path = path;
         this.review = review;
     }
 }

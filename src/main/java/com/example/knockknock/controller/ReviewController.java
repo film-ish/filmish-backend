@@ -35,4 +35,13 @@ public class ReviewController {
     public ApiResponse modifyReview(@PathVariable Long reviewId, @RequestBody ReviewRequest.Modify request){
         return reviewService.modifyReview(request, reviewId);
     }
+
+    @GetMapping("/{reviewId}")
+    @Operation(summary = "영화 리뷰 상세 조회", description = "영화 리뷰를 상세 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
+    })
+    public ApiResponse detailReview(@PathVariable Long reviewId){
+        return reviewService.detailReview(reviewId);
+    }
 }

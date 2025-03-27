@@ -8,5 +8,5 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReviewImageRepository extends JpaRepository<ReviewImage, Long> {
-    Optional<List<Review>> findByReviewId(Long reviewId);
+    Optional<List<ReviewImage>> findByReviewId(Long reviewId);
 }

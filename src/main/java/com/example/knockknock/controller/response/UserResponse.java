@@ -23,7 +23,7 @@ public class UserResponse {
                     .id(user.getId())
                     .email(user.getEmail())
                     .nickname(user.getNickname())
-                    .headImage(user.getHead_image())
+                    .headImage(user.getHeadImage())
                     .build();
         }
     }
