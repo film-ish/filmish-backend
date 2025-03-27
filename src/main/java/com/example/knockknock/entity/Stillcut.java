@@ -13,7 +13,7 @@ public class Stillcut {
     private Long id;
 
     @Column(nullable = false)
-    private String image;
+    private String stillcut;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "indie_id", nullable = false)

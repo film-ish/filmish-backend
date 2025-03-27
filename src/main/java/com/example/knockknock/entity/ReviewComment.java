@@ -2,6 +2,7 @@ package com.example.knockknock.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@SuperBuilder
 @SQLDelete(sql = "UPDATE qna SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
 public class ReviewComment extends BaseTimeEntity {
@@ -37,14 +39,6 @@ public class ReviewComment extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "parentComment")
     private List<ReviewComment> childComments = new ArrayList<>();
-
-    @Builder
-    public ReviewComment(String content, User user, Review review, ReviewComment parentComment) {
-        this.content = content;
-        this.user = user;
-        this.review = review;
-        this.parentComment = parentComment;
-    }
 
     // 부모 댓글 설정 메서드
     public void setParentComment(ReviewComment parentComment) {

@@ -21,8 +21,7 @@ public class IndieMovie {
     @Column(columnDefinition = "TEXT")
     private String plot;
 
-    @Column(name = "pub_date")
-    private Date pubDate;
+    private Date pubdate;
 
     @Column(name = "running_time")
     private int runningTime;

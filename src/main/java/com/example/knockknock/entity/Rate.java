@@ -2,6 +2,7 @@ package com.example.knockknock.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -9,6 +10,7 @@ import org.hibernate.annotations.Where;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@SuperBuilder
 @SQLDelete(sql = "UPDATE qna SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
 public class Rate extends BaseTimeEntity {
@@ -30,12 +32,4 @@ public class Rate extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "indie_id", nullable = false)
     private IndieMovie indieMovie;
-
-    @Builder
-    public Rate(int value, String content, User user, IndieMovie indieMovie) {
-        this.value = value;
-        this.content = content;
-        this.user = user;
-        this.indieMovie = indieMovie;
-    }
 }

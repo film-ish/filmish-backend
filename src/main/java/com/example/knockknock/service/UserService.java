@@ -29,7 +29,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -58,11 +57,11 @@ public class UserService {
     private String bucketName;
 
     // 회원가입
-    public ApiResponse join(UserRequest.JoinRequest joinRequest) {
-        String userEmail = joinRequest.getEmail();
-        String password = joinRequest.getPassword();
-        String nickname = joinRequest.getNickname();
-        Date birth = joinRequest.getBirth();
+    public ApiResponse join(UserRequest.Join join) {
+        String userEmail = join.getEmail();
+        String password = join.getPassword();
+        String nickname = join.getNickname();
+        Date birth = join.getBirth();
 
         log.info("joinProcess(), userEmail = " + userEmail);
 
@@ -182,9 +181,9 @@ public class UserService {
     }
 
     // 회원 정보 수정
-    public ApiResponse updateUser(Long userId, UserRequest.modifyRequest modifyRequest) {
-        MultipartFile imageFile = modifyRequest.getImage();
-        String nickname = modifyRequest.getNickname();
+    public ApiResponse updateUser(Long userId, UserRequest.Modify Modify) {
+        MultipartFile imageFile = Modify.getImage();
+        String nickname = Modify.getNickname();
         User userEntity = null;
 
         // 사용자 조회

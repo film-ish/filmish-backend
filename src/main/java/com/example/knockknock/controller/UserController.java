@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +24,7 @@ public class UserController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 가입됨")
     })
-    public ApiResponse join(@RequestBody UserRequest.JoinRequest request){
+    public ApiResponse join(@RequestBody UserRequest.Join request){
         return userService.join(request);
     }
 
@@ -65,15 +66,15 @@ public class UserController {
     }
 
     // 회원 정보 수정
-    @PatchMapping("/{userId}")
+    @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "회원 정보 수정", description = "회원 정보를 수정합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함"),
     })
     public ApiResponse updateUser(@PathVariable Long userId,
-                                  @ModelAttribute UserRequest.modifyRequest modifyRequest){
+                                  @ModelAttribute UserRequest.Modify Modify){
 
-        return userService.updateUser(userId, modifyRequest);
+        return userService.updateUser(userId, Modify);
     }
 
 
@@ -82,10 +83,10 @@ public class UserController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "비밀번호 수정 완료"),
     })
-    public ApiResponse modifyPassword(@RequestBody UserRequest.passwordRequest passwordRequest,
+    public ApiResponse modifyPassword(@RequestBody UserRequest.ModifyPassword ModifyPassword,
                                       Authentication authentication){
 
-        String newPassword = passwordRequest.getNewPassword();
+        String newPassword = ModifyPassword.getNewPassword();
         return userService.modifyPassword(authentication, newPassword);
     }
 }

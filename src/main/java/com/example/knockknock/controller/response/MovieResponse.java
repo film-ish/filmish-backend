@@ -4,6 +4,8 @@ import com.example.knockknock.entity.IndieMovie;
 import lombok.*;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Data
 public class MovieResponse {
@@ -20,8 +22,11 @@ public class MovieResponse {
         private int runningTime;
         private float averageRating;
         private String type;
+        private String poster;
+        private List<Map<Long, String>> stillcuts;
+        private List<MakerResponse.Role> makers;
 
-        public static MovieResponse.Info of(IndieMovie indieMovie){
+        public static MovieResponse.Info of(IndieMovie indieMovie, List<Map<Long, String>> stillcuts, List<MakerResponse.Role> makers){
             return Info.builder()
                     .id(indieMovie.getId())
                     .title(indieMovie.getTitle())
@@ -30,6 +35,8 @@ public class MovieResponse {
                     .runningTime(indieMovie.getRunningTime())
                     .averageRating(indieMovie.getAverageRating())
                     .type(indieMovie.getType())
+                    .stillcuts(stillcuts)
+                    .makers(makers)
                     .build();
         }
     }

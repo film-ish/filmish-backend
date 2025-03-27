@@ -20,7 +20,6 @@ public class CommercialMovie {
     @Column(columnDefinition = "TEXT")
     private String plot;
 
-    @Column(name = "pub_date")
-    private Date pubDate;
+    private Date pubdate;
     private String poster;
 }

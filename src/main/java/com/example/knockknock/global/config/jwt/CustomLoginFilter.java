@@ -71,14 +71,14 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         ObjectMapper mapper = new ObjectMapper();
-        UserRequest.LoginRequest loginRequest;
+        UserRequest.Login login;
 
         String userEmail = null;
         String password = null;
         try {
-            loginRequest = mapper.readValue(request.getInputStream(), UserRequest.LoginRequest.class);
-            userEmail = loginRequest.getEmail();
-            password = loginRequest.getPassword();
+            login = mapper.readValue(request.getInputStream(), UserRequest.Login.class);
+            userEmail = login.getEmail();
+            password = login.getPassword();
 
             log.info("로그인 시도 userEmail = " + maskEmail(userEmail));
 

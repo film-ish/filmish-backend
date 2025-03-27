@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +24,7 @@ public class MovieController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse likeIndie(@RequestBody MovieRequest.LikeIndieRequest request,
+    public ApiResponse likeIndie(@RequestBody MovieRequest.LikeIndie request,
                                  Authentication authentication) {
         return movieService.likeIndie(request, authentication);
     }
@@ -44,5 +45,14 @@ public class MovieController {
     })
     public ApiResponse movieInfo(@PathVariable Long movieId){
         return movieService.movieInfo(movieId);
+    }
+
+    @PostMapping(value = "/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "영화 리뷰 등록", description = "영화 리뷰를 등록합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
+    })
+    public ApiResponse writeReview(@ModelAttribute MovieRequest.WriteReview request, Authentication authentication){
+        return movieService.writeReview(request, authentication);
     }
 }
