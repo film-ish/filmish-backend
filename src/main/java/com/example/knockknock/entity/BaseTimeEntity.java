@@ -38,12 +38,12 @@ public abstract class BaseTimeEntity {
     }
 
     // 삭제 처리 메서드
-    protected void deleteSoftly(Instant deletedAt) {
+    public void deleteSoftly(Instant deletedAt) {
         this.deletedAt = deletedAt;
     }
 
     // 삭제 취소 메서드
-    protected void undoDeletion() {
+    public void undoDeletion() {
         this.deletedAt = null;
     }
 

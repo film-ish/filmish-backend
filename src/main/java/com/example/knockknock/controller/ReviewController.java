@@ -44,4 +44,13 @@ public class ReviewController {
     public ApiResponse detailReview(@PathVariable Long reviewId){
         return reviewService.detailReview(reviewId);
     }
+
+    @DeleteMapping("/{reviewId}")
+    @Operation(summary = "영화 리뷰 삭제", description = "영화 리뷰를 삭제합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 삭제함")
+    })
+    public ApiResponse deleteReview(@PathVariable Long reviewId){
+        return reviewService.deleteReview(reviewId);
+    }
 }

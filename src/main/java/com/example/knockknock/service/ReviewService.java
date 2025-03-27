@@ -111,7 +111,15 @@ public class ReviewService {
     }
 
     public ApiResponse detailReview(Long reviewId){
-        Review review = reviewRepository.findById(reviewId).get();
+        log.info("입력된 reviewId = " + reviewId);
+        Optional<Review> selectReview = reviewRepository.findById(reviewId);
+        Review savedReview = null;
+        if(!selectReview.isEmpty()) {
+            Review review = selectReview.get();
+            review.setViews(review.getViews() + 1);
+            savedReview = reviewRepository.save(review);
+        }
+
         List<ReviewImageResponse.Detail> images = null;
         Optional<List<ReviewImage>> imageList = reviewImageRepository.findByReviewId(reviewId);
         ReviewResponse.Detail reviewResponse = null;
@@ -123,8 +131,18 @@ public class ReviewService {
                             return ReviewImageResponse.Detail.of(image);
                         })
                         .collect(Collectors.toList());
-            reviewResponse = ReviewResponse.Detail.of(review, review.getUser().getNickname(), review.getUser().getHeadImage(), images);
+            reviewResponse = ReviewResponse.Detail.of(savedReview, savedReview.getUser().getNickname(), savedReview.getUser().getHeadImage(), images);
         }
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 리뷰를 성공적으로 조회했습니다.", reviewResponse);
+    }
+
+    public ApiResponse deleteReview(Long reviewId){
+        Review review = reviewRepository.findById(reviewId).get();
+        if (review.isSoftDeleted()) {
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미 삭제된 리뷰입니다.");
+        }
+        review.deleteSoftly(Instant.now());
+        reviewRepository.save(review);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "영화 리뷰를 성공적으로 삭제했습니다.", null);
     }
 }

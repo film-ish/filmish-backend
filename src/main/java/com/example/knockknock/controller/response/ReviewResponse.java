@@ -35,7 +35,7 @@ public class ReviewResponse {
                     .writerImage(writerImage)
                     .createdAt(review.getCreatedAt())
                     .updatedAt(review.getUpdatedAt())
-                    .views(review.getViews() + 1)
+                    .views(review.getViews())
                     .images(images)
                     .build();
         }
