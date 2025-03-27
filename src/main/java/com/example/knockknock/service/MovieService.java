@@ -32,8 +32,6 @@ public class MovieService {
     private final ReviewImageRepository reviewImageRepository;
     private final S3Service s3Service;
 
-    @Value("${spring.cloud.aws.s3.bucket}")
-    private String bucketName;
 
     public ApiResponse likeIndie(MovieRequest.LikeIndie request, Authentication authentication){
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -131,59 +129,7 @@ public class MovieService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 조회가 완료되었습니다.", info);
     }
 
-    public ApiResponse writeReview(MovieRequest.WriteReview request, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        Long userId = userDetails.getUserId();
-        User user = userRepository.findById(userId).get();
 
-        Review newReview = Review.builder()
-                .title(request.getTitle())
-                .content(request.getContent())
-                .views(0)
-                .user(user)
-                .createdAt(Instant.now())
-                .build();
 
-        Review savedReview = reviewRepository.save(newReview);
 
-        if(request.getImages() != null) {
-            List<ReviewImage> reviewImages = request.getImages().stream()
-                    .map(image -> uploadSingleImage(savedReview, image))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-
-            // 이미지 업로드 중 실패한 경우 체크
-            if (reviewImages.isEmpty()) {
-                // 이미지 업로드 실패 시 ApiErrorResponse 반환
-                return ApiErrorResponse.of(ErrorCode.SERVER_ERROR, "이미지 업로드에 실패했습니다.");
-            }
-
-            reviewImageRepository.saveAll(reviewImages);
-        }
-        return ApiSuccessResponse.response(ResponseCode.Created, "리뷰 등록되었습니다.", null);
-    }
-
-    public ReviewImage uploadSingleImage(Review review, MultipartFile image){
-        try {
-            // 원본 이미지 S3에 업로드
-            String originalFileName = image.getOriginalFilename();
-            String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            String originalKey = "images/review/" + review.getId() + "-" + System.currentTimeMillis() + fileExtension;
-
-            log.info("originalKey 생성 완료");
-            s3Service.uploadFile(bucketName, originalKey, image.getBytes(), image.getContentType());
-            log.info("이미지 저장 완료");
-            String imagePath = "https://" + bucketName + ".s3.amazonaws.com/" + originalKey;
-
-            ReviewImage reviewImage = ReviewImage.builder()
-                    .image(imagePath)
-                    .review(review)
-                    .build();
-
-            return reviewImage;
-        } catch (IOException e) {
-            log.info("이미지 등록에 실패했습니다.");
-            return null;
-        }
-    }
 }

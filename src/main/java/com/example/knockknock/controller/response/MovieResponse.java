@@ -31,7 +31,7 @@ public class MovieResponse {
                     .id(indieMovie.getId())
                     .title(indieMovie.getTitle())
                     .plot(indieMovie.getPlot())
-                    .pubDate(indieMovie.getPubDate())
+                    .pubDate(indieMovie.getPubdate())
                     .runningTime(indieMovie.getRunningTime())
                     .averageRating(indieMovie.getAverageRating())
                     .type(indieMovie.getType())

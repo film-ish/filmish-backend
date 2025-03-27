@@ -13,12 +13,5 @@ public class MovieRequest {
         private Long indieId;
     }
 
-    @Getter
-    @Setter
-    public static class WriteReview {
-        private Long indieId;
-        private String title;
-        private String content;
-        private List<MultipartFile> images;
-    }
+
 }
