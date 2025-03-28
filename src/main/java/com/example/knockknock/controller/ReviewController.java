@@ -4,9 +4,13 @@ import com.example.knockknock.controller.request.ReviewRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -81,4 +85,17 @@ public class ReviewController {
     public ApiResponse deleteComment(@PathVariable Long commentId, Authentication authentication){
         return reviewService.deleteComment(commentId, authentication);
     }
+
+    @GetMapping("/{reviewId}/comments")
+    @Operation(summary = "영화 리뷰 댓글 목록 조회", description = "영화 리뷰 댓글 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
+    })
+    public ApiResponse commentList(@PathVariable Long reviewId,
+                                   @RequestParam(name = "page") int pageNum,
+                                   @RequestParam(name = "size") int pageSize){
+        return reviewService.commentList(reviewId, pageNum, pageSize);
+    }
+
+
 }

@@ -9,10 +9,6 @@ import java.util.Map;
 
 @Data
 public class MovieResponse {
-    @Getter
-    @Setter
-    @AllArgsConstructor
-    @NoArgsConstructor
     @Builder
     public static class Detail {
         private Long id;

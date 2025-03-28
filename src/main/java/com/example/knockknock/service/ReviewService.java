@@ -34,6 +34,8 @@ public class ReviewService {
     private final ReviewImageRepository reviewImageRepository;
     private final IndieMovieRepository indieMovieRepository;
     private final ReviewCommentRepository reviewCommentRepository;
+    private final MakerMovieRepository makerMovieRepository;
+
     private final S3Service s3Service;
 
     @Value("${spring.cloud.aws.s3.bucket}")
@@ -233,5 +235,43 @@ public class ReviewService {
         reviewComment.deleteSoftly(Instant.now());
         reviewCommentRepository.save(reviewComment);
         return ApiSuccessResponse.response(ResponseCode.Ok, "댓글이 성공적으로 삭제되었습니다.", null);
+    }
+
+    public ApiResponse commentList(Long reviewId, int pageNum, int pageSize){
+        Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Direction.ASC, "createdAt"));
+        Long indieId = reviewRepository.findById(reviewId).get().getIndieMovie().getId();
+        Page<ReviewCommentResponse.Detail> commentList = reviewCommentRepository.findByReviewId(reviewId, pageable)
+                .map(reviewComment -> {
+                    if(reviewComment.getParentComment() != null) return null;    // null이 아니라 pass 했으면 좋겠음
+                    User writer = reviewComment.getUser();
+                    Optional<MakerMovie> makerMovie = makerMovieRepository.findByMakerIdAndUserId(writer.getId(), indieId);
+                    MakerMovie makerMovie1 = null;
+                    if(!makerMovie.isEmpty()) {
+                        makerMovie1 = makerMovie.get();
+                    }
+
+                    List<ReviewComment> subList = null;
+                    List<ReviewCommentResponse.Detail> subCommentList = null;
+                    Optional<List<ReviewComment>> subComments = reviewCommentRepository.findByParentCommentId(reviewComment.getId());
+                    if(!subComments.isEmpty()){
+                        subList = subComments.get();
+                        subCommentList = subList.stream()
+                                .map(subComment -> {
+                                    User subCommentWriter = subComment.getUser();
+                                    Optional<MakerMovie> subMakerMovie = makerMovieRepository
+                                            .findByMakerIdAndUserId(subCommentWriter.getId(), indieId);
+
+                                    return ReviewCommentResponse.Detail.of(
+                                            subComment,
+                                            subCommentWriter,
+                                            subMakerMovie.orElse(null),
+                                            null
+                                    );
+                                })
+                                .toList();
+                    }
+                    return ReviewCommentResponse.Detail.of(reviewComment, writer, makerMovie1, subCommentList);
+                });
+        return ApiSuccessResponse.response(ResponseCode.Ok, "댓글 목록을 성공적으로 조회하였습니다.", commentList);
     }
 }

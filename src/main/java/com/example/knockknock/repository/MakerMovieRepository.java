@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface MakerMovieRepository extends JpaRepository<MakerMovie, Long> {
     @Query("SELECT m FROM MakerMovie m WHERE m.indieMovie.id = :indieId")
     Optional<List<MakerMovie>> findByIndieId(Long indieId);
+
+    @Query("SELECT m FROM MakerMovie m WHERE m.maker.id = :makerId AND m.indieMovie.id = :indieId ")
+    Optional<MakerMovie> findByMakerIdAndUserId(Long makerId, Long indieId);
 }
