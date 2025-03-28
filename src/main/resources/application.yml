@@ -1,11 +1,12 @@
 spring:
   application:
     name: KnockKnock
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: ${DB_DRIVER}
 
   jpa:
     hibernate:
@@ -13,6 +14,40 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+  jwt:
+    secret: ${JWT_SECRET}
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: ${AWS_S3_BUCKET}
+        endpoint: https://s3.ap-northeast-2.amazonaws.com  # 이 줄을 s3 아래로 이동
+
 logging:
   level:
     org.springframework: INFO
+
+image:
+  resize:
+    basic:
+      width: 800
+      height: 600
+    thumbnail:
+      width: 300
+      height: 300
+    profile:
+      width: 200
+      height: 200
+
+springdoc:
+  show-login-endpoint: true
