@@ -8,10 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/qna")
@@ -27,5 +24,14 @@ public class QnaController {
     })
     public ApiResponse writeQna(@RequestBody QnaRequest.WriteQna request, Authentication authentication){
         return qnaService.writeQna(request, authentication);
+    }
+
+    @PutMapping("/{qnaId}")
+    @Operation(summary = "QnA 수정", description = "QnA를 수정합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
+    })
+    public ApiResponse updateQna(@PathVariable Long qnaId, @RequestBody QnaRequest.Update request, Authentication authentication){
+        return qnaService.updateQna(qnaId, request, authentication);
     }
 }

@@ -36,8 +36,9 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
     })
-    public ApiResponse updateReview(@PathVariable Long reviewId, @RequestBody ReviewRequest.Update request){
-        return reviewService.updateReview(request, reviewId);
+    public ApiResponse updateReview(@PathVariable Long reviewId, @RequestBody ReviewRequest.Update request,
+                                    Authentication authentication){
+        return reviewService.updateReview(request, reviewId, authentication);
     }
 
     @GetMapping("/{reviewId}")
@@ -54,8 +55,8 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 삭제함")
     })
-    public ApiResponse deleteReview(@PathVariable Long reviewId){
-        return reviewService.deleteReview(reviewId);
+    public ApiResponse deleteReview(@PathVariable Long reviewId, Authentication authentication){
+        return reviewService.deleteReview(reviewId, authentication);
     }
 
     @PostMapping("/comments")

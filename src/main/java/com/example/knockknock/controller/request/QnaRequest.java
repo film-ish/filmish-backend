@@ -11,4 +11,11 @@ public class QnaRequest {
         private String title;
         private String content;
     }
+
+    @Getter
+    @Setter
+    public static class Update{
+        private String title;
+        private String content;
+    }
 }

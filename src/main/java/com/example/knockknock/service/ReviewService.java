@@ -122,12 +122,13 @@ public class ReviewService {
         }
     }
 
-    public ApiResponse updateReview(ReviewRequest.Update request, Long reviewId){
+    public ApiResponse updateReview(ReviewRequest.Update request, Long reviewId, Authentication authentication){
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Review review = reviewRepository.findById(reviewId).get();
         log.info("review = " + review.getTitle());
 
-        if(review.getDeletedAt() != null){
-            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미 삭제된 게시물입니다.");
+        if (review.getUser().getId() != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "수정 권한이 없습니다.");
         }
         review.setTitle(request.getTitle());
         log.info("title = " + request.getTitle());
@@ -165,11 +166,14 @@ public class ReviewService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 리뷰를 성공적으로 조회했습니다.", reviewResponse);
     }
 
-    public ApiResponse deleteReview(Long reviewId){
+    public ApiResponse deleteReview(Long reviewId, Authentication authentication){
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Review review = reviewRepository.findById(reviewId).get();
-        if (review.isSoftDeleted()) {
-            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미 삭제된 리뷰입니다.");
+
+        if(userDetails.getUserId() != review.getUser().getId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "삭제 권한이 없습니다.");
         }
+
         review.deleteSoftly(Instant.now());
         reviewRepository.save(review);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 리뷰를 성공적으로 삭제했습니다.", null);
