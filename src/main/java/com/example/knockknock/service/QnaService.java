@@ -60,6 +60,20 @@ public class QnaService {
 
         qnaRepository.save(qna);
 
-        return ApiSuccessResponse.response(ResponseCode.Ok, "수정이 완료되었습니다.", null);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "게시물 수정이 완료되었습니다.", null);
+    }
+
+    public ApiResponse deleteQna(Long qnaId, Authentication authentication){
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Qna qna = qnaRepository.findById(qnaId).get();
+
+        if(qna.getUser().getId() != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "권한이 없습니다.");
+        }
+
+        qna.deleteSoftly(Instant.now());
+        qnaRepository.save(qna);
+
+        return ApiSuccessResponse.response(ResponseCode.Ok, "게시물이 삭제되었습니다.", null);
     }
 }

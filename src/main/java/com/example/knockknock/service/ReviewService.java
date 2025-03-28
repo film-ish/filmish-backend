@@ -176,7 +176,7 @@ public class ReviewService {
 
         review.deleteSoftly(Instant.now());
         reviewRepository.save(review);
-        return ApiSuccessResponse.response(ResponseCode.Ok, "영화 리뷰를 성공적으로 삭제했습니다.", null);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "게시물이 삭제되었습니다.", null);
     }
 
     public ApiResponse writeComment(ReviewRequest.WriteComment request, Authentication authentication){
