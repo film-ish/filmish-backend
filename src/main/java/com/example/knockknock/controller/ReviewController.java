@@ -32,8 +32,8 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
     })
-    public ApiResponse modifyReview(@PathVariable Long reviewId, @RequestBody ReviewRequest.Modify request){
-        return reviewService.modifyReview(request, reviewId);
+    public ApiResponse updateReview(@PathVariable Long reviewId, @RequestBody ReviewRequest.Update request){
+        return reviewService.updateReview(request, reviewId);
     }
 
     @GetMapping("/{reviewId}")
@@ -61,5 +61,15 @@ public class ReviewController {
     })
     public ApiResponse writeComment(@RequestBody ReviewRequest.WriteComment request, Authentication authentication){
         return reviewService.writeComment(request, authentication);
+    }
+
+    @PutMapping("/comments/{commentId}")
+    @Operation(summary = "영화 리뷰 댓글 수정", description = "영화 리뷰 댓글을 수정합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
+    })
+    public ApiResponse updateComment(@PathVariable Long commentId, @RequestBody ReviewRequest.UpdateComment request,
+                                     Authentication authentication){
+        return reviewService.updateComment(request, commentId, authentication);
     }
 }

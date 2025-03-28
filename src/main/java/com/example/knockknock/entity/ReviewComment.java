@@ -22,6 +22,7 @@ public class ReviewComment extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @Column(name="content", nullable = false)
     private String content;
 

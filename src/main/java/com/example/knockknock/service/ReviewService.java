@@ -120,7 +120,7 @@ public class ReviewService {
         }
     }
 
-    public ApiResponse modifyReview(ReviewRequest.Modify request, Long reviewId){
+    public ApiResponse updateReview(ReviewRequest.Update request, Long reviewId){
         Review review = reviewRepository.findById(reviewId).get();
         log.info("review = " + review.getTitle());
 
@@ -202,7 +202,22 @@ public class ReviewService {
             reviewCommentRepository.save(newComment);
             return ApiSuccessResponse.response(ResponseCode.Created, "댓글이 성공적으로 등록되었습니다.", null);
         }
+    }
 
+    public ApiResponse updateComment(ReviewRequest.UpdateComment request, Long commentId, Authentication authentication){
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        ReviewComment reviewComment = reviewCommentRepository.findById(commentId).get();
 
+        if(userDetails.getUserId() != reviewComment.getUser().getId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "수정 권한이 없습니다.");
+        }
+
+        if (request.getContent() == null){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "입력된 내용이 없습니다.");
+        }
+        
+        reviewComment.setContent(request.getContent());
+        reviewCommentRepository.save(reviewComment);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "댓글이 성공적으로 수정되었습니다.", null);
     }
 }

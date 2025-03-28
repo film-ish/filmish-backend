@@ -19,7 +19,7 @@ public class ReviewRequest {
 
     @Getter
     @NoArgsConstructor
-    public static class Modify{
+    public static class Update {
         private String title;
         private String content;
     }
@@ -30,5 +30,11 @@ public class ReviewRequest {
         private Long reviewId;
         private String content;
         private Long parentId;
+    }
+
+    @Getter
+    @Setter
+    public static class UpdateComment{
+        private String content;
     }
 }
