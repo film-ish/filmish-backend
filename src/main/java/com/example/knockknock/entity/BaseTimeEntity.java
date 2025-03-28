@@ -6,6 +6,7 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -25,6 +26,7 @@ public abstract class BaseTimeEntity {
     @Column(name="created_at", updatable = false, columnDefinition = "TIMESTAMP")
     private Instant createdAt;
 
+    @Setter
     @LastModifiedDate
     @Column(name="updated_at", columnDefinition = "TIMESTAMP")
     private Instant updatedAt;

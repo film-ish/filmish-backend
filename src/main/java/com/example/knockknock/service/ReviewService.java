@@ -215,9 +215,23 @@ public class ReviewService {
         if (request.getContent() == null){
             return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "입력된 내용이 없습니다.");
         }
-        
+
         reviewComment.setContent(request.getContent());
+        reviewComment.setUpdatedAt(Instant.now());
         reviewCommentRepository.save(reviewComment);
         return ApiSuccessResponse.response(ResponseCode.Ok, "댓글이 성공적으로 수정되었습니다.", null);
+    }
+
+    public ApiResponse deleteComment(Long commentId, Authentication authentication){
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        ReviewComment reviewComment = reviewCommentRepository.findById(commentId).get();
+
+        if(userDetails.getUserId() != reviewComment.getUser().getId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "삭제 권한이 없습니다.");
+        }
+
+        reviewComment.deleteSoftly(Instant.now());
+        reviewCommentRepository.save(reviewComment);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "댓글이 성공적으로 삭제되었습니다.", null);
     }
 }
