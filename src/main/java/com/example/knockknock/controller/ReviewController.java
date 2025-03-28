@@ -53,4 +53,13 @@ public class ReviewController {
     public ApiResponse deleteReview(@PathVariable Long reviewId){
         return reviewService.deleteReview(reviewId);
     }
+
+    @PostMapping("/comments")
+    @Operation(summary = "영화 리뷰 댓글 등록", description = "영화 리뷰 댓글을 등록합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
+    })
+    public ApiResponse writeComment(@RequestBody ReviewRequest.WriteComment request, Authentication authentication){
+        return reviewService.writeComment(request, authentication);
+    }
 }

@@ -3,16 +3,10 @@ package com.example.knockknock.service;
 import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.request.ReviewRequest;
 import com.example.knockknock.controller.response.*;
-import com.example.knockknock.entity.IndieMovie;
-import com.example.knockknock.entity.Review;
-import com.example.knockknock.entity.ReviewImage;
-import com.example.knockknock.entity.User;
+import com.example.knockknock.entity.*;
 import com.example.knockknock.error.code.ErrorCode;
 import com.example.knockknock.error.response.ApiErrorResponse;
-import com.example.knockknock.repository.IndieMovieRepository;
-import com.example.knockknock.repository.ReviewImageRepository;
-import com.example.knockknock.repository.ReviewRepository;
-import com.example.knockknock.repository.UserRepository;
+import com.example.knockknock.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +33,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final IndieMovieRepository indieMovieRepository;
+    private final ReviewCommentRepository reviewCommentRepository;
     private final S3Service s3Service;
 
     @Value("${spring.cloud.aws.s3.bucket}")
@@ -176,5 +171,38 @@ public class ReviewService {
         review.deleteSoftly(Instant.now());
         reviewRepository.save(review);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 리뷰를 성공적으로 삭제했습니다.", null);
+    }
+
+    public ApiResponse writeComment(ReviewRequest.WriteComment request, Authentication authentication){
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        User writer = userRepository.findById(userDetails.getUserId()).get();
+        Review review = reviewRepository.findById(request.getReviewId()).get();
+
+        // ParentId가 null인 경우 (댓글)
+        if (request.getParentId() == null) {
+            ReviewComment newComment = ReviewComment.builder()
+                    .content(request.getContent())
+                    .user(writer)
+                    .review(review)
+                    .createdAt(Instant.now())
+                    .parentComment(null)
+                    .build();
+            reviewCommentRepository.save(newComment);
+            return ApiSuccessResponse.response(ResponseCode.Created, "댓글이 성공적으로 등록되었습니다.", null);
+        } else {        // ParentId가 존재하는 경우 (대댓글)
+            ReviewComment parentComment = reviewCommentRepository.findById(request.getParentId()).get();
+            ReviewComment newComment = ReviewComment.builder()
+                    .content(request.getContent())
+                    .user(writer)
+                    .review(review)
+                    .createdAt(Instant.now())
+                    .parentComment(parentComment)
+                    .build();
+            reviewCommentRepository.save(newComment);
+            return ApiSuccessResponse.response(ResponseCode.Created, "댓글이 성공적으로 등록되었습니다.", null);
+        }
+
+
     }
 }

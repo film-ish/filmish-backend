@@ -23,4 +23,12 @@ public class ReviewRequest {
         private String title;
         private String content;
     }
+
+    @Getter
+    @Setter
+    public static class WriteComment{
+        private Long reviewId;
+        private String content;
+        private Long parentId;
+    }
 }
