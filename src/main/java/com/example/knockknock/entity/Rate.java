@@ -20,7 +20,7 @@ public class Rate extends BaseTimeEntity {
     private Long id;
 
     @Column(name = "value", nullable = false)
-    private int value;
+    private float value;
 
     @Column(name = "content", nullable = false)
     private String content;
