@@ -7,6 +7,7 @@ import com.example.knockknock.entity.*;
 import com.example.knockknock.error.code.ErrorCode;
 import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.repository.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -179,18 +180,22 @@ public class ReviewService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "게시물이 삭제되었습니다.", null);
     }
 
+    @Transactional
     public ApiResponse writeComment(ReviewRequest.WriteComment request, Authentication authentication){
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
         User writer = userRepository.findById(userDetails.getUserId()).get();
-        Review review = reviewRepository.findById(request.getReviewId()).get();
+        Optional<Review> review = reviewRepository.findById(request.getReviewId());
+        if(review.isEmpty()){
+            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "존재하지 않는 게시물입니다.");
+        }
 
         // ParentId가 null인 경우 (댓글)
         if (request.getParentId() == null) {
             ReviewComment newComment = ReviewComment.builder()
                     .content(request.getContent())
                     .user(writer)
-                    .review(review)
+                    .review(review.get())
                     .createdAt(Instant.now())
                     .parentComment(null)
                     .build();
@@ -201,7 +206,7 @@ public class ReviewService {
             ReviewComment newComment = ReviewComment.builder()
                     .content(request.getContent())
                     .user(writer)
-                    .review(review)
+                    .review(review.get())
                     .createdAt(Instant.now())
                     .parentComment(parentComment)
                     .build();

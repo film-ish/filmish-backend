@@ -13,6 +13,7 @@ import com.example.knockknock.repository.MakerRepository;
 import com.example.knockknock.repository.QnaCommentRepository;
 import com.example.knockknock.repository.QnaRepository;
 import com.example.knockknock.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -35,7 +36,7 @@ public class QnaService {
     private final QnaRepository qnaRepository;
     private final QnaCommentRepository qnaCommentRepository;
 
-    public ApiResponse writeQna(QnaRequest.WriteQna request, Authentication authentication){
+    public ApiResponse writeQna(QnaRequest.Write request, Authentication authentication){
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long userId = userDetails.getUserId();
         User writer = userRepository.findById(userId).get();
@@ -120,5 +121,28 @@ public class QnaService {
                     return QnaResponse.Detail.of(qna, writer,qnaComments);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "목록이 성공적으로 조회되었습니다.", qnaPage);
+    }
+
+    @Transactional
+    public ApiResponse writeComment(Long qnaId, QnaRequest.WriteComment request,
+                                    Authentication authentication){
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        User writer = userRepository.findById(userDetails.getUserId()).get();
+
+        Optional<Qna> qna = qnaRepository.findByIdWithLock(qnaId);
+        if(qna.isEmpty()){
+            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "존재하지 않는 게시물입니다.");
+        }
+
+        QnaComment qnaComment = QnaComment.builder()
+                .content(request.getContent())
+                .user(writer)
+                .qna(qna.get())
+                .createdAt(Instant.now())
+                .build();
+
+        qnaCommentRepository.save(qnaComment);
+
+        return ApiSuccessResponse.response(ResponseCode.Created, "댓글이 성공적으로 등록되었습니다.", null);
     }
 }
