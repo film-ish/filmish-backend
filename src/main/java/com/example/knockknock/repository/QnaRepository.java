@@ -1,7 +1,16 @@
 package com.example.knockknock.repository;
 
 import com.example.knockknock.entity.Qna;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 public interface QnaRepository extends JpaRepository<Qna, Long> {
+    @Query(value = "SELECT q FROM Qna q WHERE q.maker.id = :makerId",
+            countQuery = "SELECT COUNT(q) FROM Qna q WHERE q.maker.id = :makerId")
+    Page<Qna> findByMakerId(@Param("makerId") Long makerId, Pageable pageable);
 }

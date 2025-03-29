@@ -4,13 +4,9 @@ import com.example.knockknock.controller.request.ReviewRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -95,7 +91,7 @@ public class ReviewController {
     public ApiResponse commentList(@PathVariable Long reviewId,
                                    @RequestParam(name = "page") int pageNum,
                                    @RequestParam(name = "size") int pageSize){
-        return reviewService.commentList(reviewId, pageNum, pageSize);
+        return reviewService.listComment(reviewId, pageNum, pageSize);
     }
 
 

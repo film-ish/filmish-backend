@@ -241,7 +241,7 @@ public class ReviewService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "댓글이 성공적으로 삭제되었습니다.", null);
     }
 
-    public ApiResponse commentList(Long reviewId, int pageNum, int pageSize){
+    public ApiResponse listComment(Long reviewId, int pageNum, int pageSize){
         Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Direction.ASC, "createdAt"));
         Long indieId = reviewRepository.findById(reviewId).get().getIndieMovie().getId();
         Page<ReviewCommentResponse.Detail> commentList = reviewCommentRepository.findByReviewId(reviewId, pageable)
@@ -271,8 +271,7 @@ public class ReviewService {
                                             subMakerMovie.orElse(null),
                                             null
                                     );
-                                })
-                                .toList();
+                                }).toList();
                     }
                     return ReviewCommentResponse.Detail.of(reviewComment, writer, makerMovie1, subCommentList);
                 });

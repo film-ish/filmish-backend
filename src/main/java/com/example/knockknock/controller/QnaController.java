@@ -44,4 +44,14 @@ public class QnaController {
         return qnaService.deleteQna(qnaId, authentication);
     }
 
+    @GetMapping("/{makerId}")
+    @Operation(summary = "QnA 목록 조회", description = "QnA 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
+    })
+    public ApiResponse listQna(@PathVariable Long makerId,
+                               @RequestParam int pageNum, @RequestParam int pageSize){
+        return qnaService.listQna(makerId, pageNum, pageSize);
+    }
+
 }
