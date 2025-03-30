@@ -16,11 +16,11 @@ public class RateResponse {
         private Instant createdAt;
         private Instant updatedAt;
 
-        public static RateResponse.Detail of(Rate rate){
+        public static RateResponse.Detail of(Rate rate, String writer, String writerImage){
             return Detail.builder()
                     .id(rate.getId())
-                    .writerName(rate.getUser().getNickname())
-                    .writerImage(rate.getUser().getHeadImage())
+                    .writerName(writer)
+                    .writerImage(writerImage)
                     .value(rate.getValue())
                     .createdAt(rate.getCreatedAt())
                     .updatedAt(rate.getUpdatedAt())
