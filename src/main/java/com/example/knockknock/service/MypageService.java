@@ -1,20 +1,17 @@
 package com.example.knockknock.service;
 
 import com.example.knockknock.controller.response.*;
-import com.example.knockknock.entity.Genre;
-import com.example.knockknock.entity.IndieGenre;
-import com.example.knockknock.entity.IndieMovie;
-import com.example.knockknock.entity.Poster;
+import com.example.knockknock.entity.*;
 import com.example.knockknock.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +23,8 @@ public class MypageService {
     private final IndieGenreRepository indieGenreRepository;
     private final GenreRepository genreRepository;
     private final RateRepository rateRepository;
+    private final ReviewRepository reviewRepository;
+    private final ReviewImageRepository reviewImageRepository;
 
     public ApiResponse listLikeIndie(Long userId, int pageNum, int pageSize){
         Pageable pageable = PageRequest.of(pageNum, pageSize);
@@ -56,5 +55,21 @@ public class MypageService {
                     return MypageResponse.RateDetail.of(rate, movie, poster.getPoster());
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", ratePage);
+    }
+
+    public ApiResponse listReviews(Long userId, int pageNum, int pageSize){
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<MypageResponse.ReviewDetail> reviewPage = reviewRepository.findByUserId(userId, pageable)
+                .map(review -> {
+                    IndieMovie movie = review.getIndieMovie();
+                    Optional<List<ReviewImage>> imageList = reviewImageRepository.findByReviewId(review.getId());
+                    List<String> images = imageList.isEmpty() ? null : imageList.get().stream()
+                            .map(reviewImage -> {
+                                return reviewImage.getPath();
+                            }).toList();
+
+                    return MypageResponse.ReviewDetail.of(review, movie, images);
+                });
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
     }
 }

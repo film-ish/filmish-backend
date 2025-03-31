@@ -32,4 +32,13 @@ public class MypageController {
     public ApiResponse listRating(@PathVariable Long userId, @RequestParam int pageNum, @RequestParam int pageSize){
         return mypageService.listRating(userId, pageNum, pageSize);
     }
+
+    @GetMapping("/reviews")
+    @Operation(summary = "내 리뷰 목록 조회", description = "나의 리뷰 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
+    })
+    public ApiResponse listReviews(@PathVariable Long userId, @RequestParam int pageNum, @RequestParam int pageSize){
+        return mypageService.listReviews(userId, pageNum, pageSize);
+    }
 }

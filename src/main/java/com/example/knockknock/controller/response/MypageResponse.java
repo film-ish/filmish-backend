@@ -2,6 +2,7 @@ package com.example.knockknock.controller.response;
 
 import com.example.knockknock.entity.IndieMovie;
 import com.example.knockknock.entity.Rate;
+import com.example.knockknock.entity.Review;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -35,6 +36,34 @@ public class MypageResponse {
                     .movieId(indieMovie.getId())
                     .title(indieMovie.getTitle())
                     .poster(poster)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class ReviewDetail {
+        private Long reviewId;
+        private String title;
+        private String content;
+        private List<String> image;
+        private Instant createdAt;
+        private Instant updatedAt;
+        private Integer views;
+        private Long movieId;
+        private String movieTitle;
+
+        public static ReviewDetail of(Review review, IndieMovie indieMovie, List<String> image){
+            return ReviewDetail.builder()
+                    .reviewId(review.getId())
+                    .title(review.getTitle())
+                    .content(review.getContent())
+                    .image(image)
+                    .createdAt(review.getCreatedAt())
+                    .updatedAt(review.getUpdatedAt())
+                    .views(review.getViews())
+                    .movieId(indieMovie.getId())
+                    .movieTitle(indieMovie.getTitle())
                     .build();
         }
     }
