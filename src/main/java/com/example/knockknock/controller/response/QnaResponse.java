@@ -5,7 +5,6 @@ import com.example.knockknock.entity.User;
 import lombok.*;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 public class QnaResponse {
