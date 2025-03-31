@@ -1,9 +1,6 @@
 package com.example.knockknock.service;
 
-import com.example.knockknock.controller.response.ApiResponse;
-import com.example.knockknock.controller.response.ApiSuccessResponse;
-import com.example.knockknock.controller.response.IndieResponse;
-import com.example.knockknock.controller.response.ResponseCode;
+import com.example.knockknock.controller.response.*;
 import com.example.knockknock.entity.Genre;
 import com.example.knockknock.entity.IndieGenre;
 import com.example.knockknock.entity.IndieMovie;
@@ -28,6 +25,7 @@ public class MypageService {
     private final PosterRepository posterRepository;
     private final IndieGenreRepository indieGenreRepository;
     private final GenreRepository genreRepository;
+    private final RateRepository rateRepository;
 
     public ApiResponse listLikeIndie(Long userId, int pageNum, int pageSize){
         Pageable pageable = PageRequest.of(pageNum, pageSize);
@@ -46,5 +44,17 @@ public class MypageService {
                     return IndieResponse.LikeDetail.of(movie, posterUrl, categories);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", likePage);
+    }
+
+    public ApiResponse listRating(Long userId, int pageNum, int pageSize){
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<MypageResponse.RateDetail> ratePage = rateRepository.findByUserId(userId, pageable)
+                .map(rate -> {
+                    IndieMovie movie = rate.getIndieMovie();
+                    Poster poster = posterRepository.findByIndieId(movie.getId()).get(0);
+
+                    return MypageResponse.RateDetail.of(rate, movie, poster.getPoster());
+                });
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", ratePage);
     }
 }

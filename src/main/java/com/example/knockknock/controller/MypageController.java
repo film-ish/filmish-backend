@@ -23,4 +23,13 @@ public class MypageController {
     public ApiResponse listLikeIndie(@PathVariable Long userId, @RequestParam int pageNum, @RequestParam int pageSize){
         return mypageService.listLikeIndie(userId, pageNum, pageSize);
     }
+
+    @GetMapping("/ratings")
+    @Operation(summary = "내 평점 목록 조회", description = "나의 평점 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
+    })
+    public ApiResponse listRating(@PathVariable Long userId, @RequestParam int pageNum, @RequestParam int pageSize){
+        return mypageService.listRating(userId, pageNum, pageSize);
+    }
 }
