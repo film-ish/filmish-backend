@@ -23,6 +23,8 @@ import java.time.Instant;
 public abstract class BaseTimeEntity {
 
     @CreatedDate
+    @Getter
+    @Setter
     @Column(name="created_at", updatable = false, columnDefinition = "TIMESTAMP")
     private Instant createdAt;
 

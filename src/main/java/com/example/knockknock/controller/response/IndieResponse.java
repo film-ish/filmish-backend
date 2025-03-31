@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class MovieResponse {
+public class IndieResponse {
     @Getter
     @Builder
     public static class Detail {
@@ -34,6 +34,26 @@ public class MovieResponse {
                     .type(indieMovie.getType())
                     .stillcuts(stillcuts)
                     .makers(makers)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class LikeDetail {
+        private Long id;
+        private String title;
+        private String poster;
+        private Date pubDate;
+        private List<String> categories;
+
+        public static LikeDetail of(IndieMovie movie, String poster, List<String> categories){
+            return LikeDetail.builder()
+                    .id(movie.getId())
+                    .title(movie.getTitle())
+                    .poster(poster)
+                    .pubDate(movie.getPubdate())
+                    .categories(categories)
                     .build();
         }
     }

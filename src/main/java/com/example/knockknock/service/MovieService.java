@@ -9,7 +9,6 @@ import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -112,7 +111,7 @@ public class MovieService {
         }
 
         log.info("영화 조회가 완료되었습니다.");
-        MovieResponse.Detail detail = MovieResponse.Detail.of(indieMovie.get(), stillcuts, roles);
+        IndieResponse.Detail detail = IndieResponse.Detail.of(indieMovie.get(), stillcuts, roles);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 조회가 완료되었습니다.", detail);
     }
 
