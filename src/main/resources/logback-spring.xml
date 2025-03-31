@@ -32,5 +32,5 @@
   </root>
 
   <!-- Application Loggers -->
-  <logger name="com.yourcompany" level="DEBUG" />
+  <logger name="com.ssafy.knockknok" level="DEBUG" />
 </configuration>
