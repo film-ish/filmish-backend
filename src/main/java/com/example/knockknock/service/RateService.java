@@ -23,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -51,10 +52,12 @@ public class RateService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "평점 목록이 성공적으로 조회되었습니다.", ratePage);
     }
 
-    public ApiResponse writeRate(RateRequest.WriteRate request, Authentication authentication){
+    public ApiResponse createRate(RateRequest.Create request, Authentication authentication){
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long userId = userDetails.getUserId();
+        System.out.println("userId:" + userId);
         User user = userRepository.findById(userId).get();
+        System.out.println("indieID:" + request.getIndieId());
         IndieMovie indieMovie = indieMovieRepository.findById(request.getIndieId()).get();
 
         Rate newRate = Rate.builder()
@@ -67,5 +70,24 @@ public class RateService {
         rateRepository.save(newRate);
         return ApiSuccessResponse.response(ResponseCode.Created, "평점이 성공적으로 등록되었습니다.", null);
     }
+
+    public ApiResponse detailRate(Long rateId){
+        Optional<Rate> selectRate = rateRepository.findById(rateId);
+        Rate rate = selectRate.get();
+
+        //TODO(이효미): 평점이 없을 경우, 예외 처리
+        //        if (selectRate.isEmpty()){
+        //            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "해당 평점을 찾을 수 없습니다.");
+        //        }
+
+        RateResponse.Detail rateResponse = RateResponse.Detail.of(
+                rate,
+                rate.getUser().getNickname(),
+                rate.getUser().getHeadImage()
+        );
+        return ApiSuccessResponse.response(ResponseCode.Ok, "영화 평점을 성공적으로 조회했습니다.", rateResponse);
+    }
+
+
 
 }

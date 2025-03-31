@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/rates")
@@ -21,13 +18,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class RateController {
     private final RateService rateService;
 
-    @PostMapping(value="", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value="", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "영화 평점 등록", description = "영화 평점을 등록합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse writeRate(@ModelAttribute RateRequest.WriteRate request, Authentication authentication){
-        return rateService.writeRate(request, authentication);
+    public ApiResponse createRate(@ModelAttribute RateRequest.Create request, Authentication authentication){
+        return rateService.createRate(request, authentication);
+    }
+
+    @GetMapping("/{rateId}")
+    @Operation(summary = "영화 평점 상세 조회", description = "영화 평점을 상세 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회됨")
+    })
+    public ApiResponse detailRate(@PathVariable Long rateId) {
+        return rateService.detailRate(rateId);
     }
 
 }

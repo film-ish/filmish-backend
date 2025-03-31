@@ -51,3 +51,5 @@ image:
 
 springdoc:
   show-login-endpoint: true
+
+use-fqn: true
