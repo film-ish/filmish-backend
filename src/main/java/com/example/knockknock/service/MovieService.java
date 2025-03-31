@@ -24,13 +24,14 @@ public class MovieService {
     private final UserRepository userRepository;
     private final StillcutRepository stillcutRepository;
     private final MakerMovieRepository makerMovieRepository;
+    private final CommercialMovieRepository commercialMovieRepository;
+    private final CommercialGenreRepository commercialGenreRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final S3Service s3Service;
 
 
-    public ApiResponse likeIndie(MovieRequest.LikeIndie request, Authentication authentication){
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse likeIndie(MovieRequest.LikeIndie request, CustomUserDetails customUserDetails){
         Long userId = customUserDetails.getUserId();
         Long indieId = request.getIndieId();
 
@@ -125,7 +126,31 @@ public class MovieService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 조회가 완료되었습니다.", detail);
     }
 
+    public ApiResponse listCommercial(){
+        // 랜덤 숫자를 생성, 중복 방지를 위해 Set 사용
+        Set<Long> randomIds = new HashSet<>();
+        while (randomIds.size() < 20) {
+            Long randomNumber = (long) (Math.random() * 226) + 1;
+            randomIds.add(randomNumber);
+        }
 
+        // DB 호출 횟수 최소화를 위해 랜덤 ID 리스트를 한 번에 조회
+        List<CommercialMovie> movies = commercialMovieRepository.findAllById(randomIds);
+        Map<Long, List<CommercialGenre>> genresMap = commercialGenreRepository.findByCommercialIdIn(randomIds).stream()
+                                                        .collect(Collectors.groupingBy(CommercialGenre::getCommercialId));
+
+        List<CommercialResponse.Detail> movieList = movies.stream()
+                .map(movie -> {
+                    List<String> categories = genresMap.getOrDefault(movie.getId(), Collections.emptyList())
+                            .stream()
+                            .map(genre -> genre.getGenre().getName())
+                            .toList();
+                    return CommercialResponse.Detail.of(movie, categories);
+                })
+                .toList();
+
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", movieList);
+    }
 
 
 }

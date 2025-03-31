@@ -9,6 +9,7 @@ import java.util.Map;
 
 @Data
 public class MovieResponse {
+    @Getter
     @Builder
     public static class Detail {
         private Long id;
