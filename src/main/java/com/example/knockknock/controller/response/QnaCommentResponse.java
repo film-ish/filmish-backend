@@ -1,13 +1,12 @@
 package com.example.knockknock.controller.response;
 
-import com.example.knockknock.entity.MakerMovie;
-import com.example.knockknock.entity.ReviewComment;
+import com.example.knockknock.entity.QnaComment;
 import com.example.knockknock.entity.User;
 import lombok.*;
 
 import java.util.List;
 
-public class ReviewCommentResponse {
+public class QnaCommentResponse {
     @Getter
     @Setter
     @AllArgsConstructor
@@ -17,19 +16,16 @@ public class ReviewCommentResponse {
         private Long id;
         private String writer;
         private String writerImage;
-        private String writerType;
         private String content;
         private List<Detail> comments;
 
-        public static Detail of(ReviewComment reviewComment,
-                                                      User writer, MakerMovie makerMovie,
-                                                      List<Detail> comments){
+        public static Detail of(QnaComment qnaComment,
+                                User writer, List<Detail> comments){
             return Detail.builder()
-                    .id(reviewComment.getId())
+                    .id(qnaComment.getId())
                     .writer(writer.getNickname())
                     .writerImage(writer.getHeadImage())
-                    .writerType(makerMovie != null ? makerMovie.getType().toString() : null)
-                    .content(reviewComment.getContent())
+                    .content(qnaComment.getContent())
                     .comments(comments)
                     .build();
         }

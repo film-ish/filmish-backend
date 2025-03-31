@@ -4,13 +4,9 @@ import com.example.knockknock.controller.request.ReviewRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +23,7 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse writeReview(@ModelAttribute ReviewRequest.Write request, Authentication authentication){
+    public ApiResponse writeReview(@ModelAttribute ReviewRequest.Create request, Authentication authentication){
         return reviewService.writeReview(request, authentication);
     }
 
@@ -36,8 +32,9 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
     })
-    public ApiResponse updateReview(@PathVariable Long reviewId, @RequestBody ReviewRequest.Update request){
-        return reviewService.updateReview(request, reviewId);
+    public ApiResponse updateReview(@PathVariable Long reviewId, @RequestBody ReviewRequest.Update request,
+                                    Authentication authentication){
+        return reviewService.updateReview(request, reviewId, authentication);
     }
 
     @GetMapping("/{reviewId}")
@@ -54,8 +51,8 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 삭제함")
     })
-    public ApiResponse deleteReview(@PathVariable Long reviewId){
-        return reviewService.deleteReview(reviewId);
+    public ApiResponse deleteReview(@PathVariable Long reviewId, Authentication authentication){
+        return reviewService.deleteReview(reviewId, authentication);
     }
 
     @PostMapping("/comments")
@@ -63,7 +60,7 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse writeComment(@RequestBody ReviewRequest.WriteComment request, Authentication authentication){
+    public ApiResponse writeComment(@RequestBody ReviewRequest.CreateComment request, Authentication authentication){
         return reviewService.writeComment(request, authentication);
     }
 
@@ -94,7 +91,7 @@ public class ReviewController {
     public ApiResponse commentList(@PathVariable Long reviewId,
                                    @RequestParam(name = "page") int pageNum,
                                    @RequestParam(name = "size") int pageSize){
-        return reviewService.commentList(reviewId, pageNum, pageSize);
+        return reviewService.listComment(reviewId, pageNum, pageSize);
     }
 
 
