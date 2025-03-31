@@ -159,4 +159,18 @@ public class QnaService {
         qnaCommentRepository.save(comment);
         return ApiSuccessResponse.response(ResponseCode.Ok, "수정이 완료되었습니다.", null);
     }
+
+    public ApiResponse deleteComment(Long commentId, Authentication authentication){
+        CustomUserDetails userDetail = (CustomUserDetails) authentication.getPrincipal();
+        QnaComment comment = qnaCommentRepository.findById(commentId).get();
+
+        if(comment.getUser().getId() != userDetail.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "삭제 권한이 없습니다.");
+        }
+
+        comment.deleteSoftly(Instant.now());
+        qnaCommentRepository.save(comment);
+
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 삭제되었습니다.", null);
+    }
 }

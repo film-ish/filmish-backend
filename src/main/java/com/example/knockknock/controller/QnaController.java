@@ -73,4 +73,13 @@ public class QnaController {
                                      Authentication authentication){
         return qnaService.updateComment(commentId, request, authentication);
     }
+
+    @DeleteMapping("/comments/{commentId}")
+    @Operation(summary = "QnA 댓글 삭제", description = "QnA에 댓글을 삭제합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 삭제함")
+    })
+    public ApiResponse deleteComment(@PathVariable Long commentId, Authentication authentication){
+        return qnaService.deleteComment(commentId, authentication);
+    }
 }
