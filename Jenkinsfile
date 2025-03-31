@@ -11,6 +11,13 @@ pipeline {
     }
 
     stages {
+        stage('Prepare Log Directory') {
+            steps {
+                echo '로그 디렉토리 생성 및 권한 확인 중...'
+                sh 'mkdir -p /var/log/springboot'
+                sh 'chmod 777 /var/log/springboot'
+            }
+        }
         stage('Build & Test') {
             steps {
                 echo '백엔드 빌드 및 테스트 실행 중...'
