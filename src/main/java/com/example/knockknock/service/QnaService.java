@@ -36,7 +36,7 @@ public class QnaService {
     private final QnaRepository qnaRepository;
     private final QnaCommentRepository qnaCommentRepository;
 
-    public ApiResponse writeQna(QnaRequest.Write request, Authentication authentication){
+    public ApiResponse writeQna(QnaRequest.Create request, Authentication authentication){
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long userId = userDetails.getUserId();
         User writer = userRepository.findById(userId).get();
@@ -124,7 +124,7 @@ public class QnaService {
     }
 
     @Transactional
-    public ApiResponse writeComment(Long qnaId, QnaRequest.WriteComment request,
+    public ApiResponse writeComment(Long qnaId, QnaRequest.CreateComment request,
                                     Authentication authentication){
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User writer = userRepository.findById(userDetails.getUserId()).get();
@@ -144,5 +144,19 @@ public class QnaService {
         qnaCommentRepository.save(qnaComment);
 
         return ApiSuccessResponse.response(ResponseCode.Created, "댓글이 성공적으로 등록되었습니다.", null);
+    }
+
+    public ApiResponse updateComment(Long commentId, QnaRequest.UpdateComment request, Authentication authentication){
+        CustomUserDetails userDetail = (CustomUserDetails) authentication.getPrincipal();
+        QnaComment comment = qnaCommentRepository.findById(commentId).get();
+
+        if(comment.getUser().getId() != userDetail.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "수정 권한이 없습니다.");
+        }
+
+        comment.setContent(request.getContent());
+        comment.setUpdatedAt(Instant.now());
+        qnaCommentRepository.save(comment);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "수정이 완료되었습니다.", null);
     }
 }

@@ -23,7 +23,7 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse writeReview(@ModelAttribute ReviewRequest.Write request, Authentication authentication){
+    public ApiResponse writeReview(@ModelAttribute ReviewRequest.Create request, Authentication authentication){
         return reviewService.writeReview(request, authentication);
     }
 
@@ -60,7 +60,7 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse writeComment(@RequestBody ReviewRequest.WriteComment request, Authentication authentication){
+    public ApiResponse writeComment(@RequestBody ReviewRequest.CreateComment request, Authentication authentication){
         return reviewService.writeComment(request, authentication);
     }
 

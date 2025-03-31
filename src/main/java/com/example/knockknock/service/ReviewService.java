@@ -65,7 +65,7 @@ public class ReviewService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
     }
     
-    public ApiResponse writeReview(ReviewRequest.Write request, Authentication authentication){
+    public ApiResponse writeReview(ReviewRequest.Create request, Authentication authentication){
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long userId = userDetails.getUserId();
         User user = userRepository.findById(userId).get();
@@ -181,7 +181,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public ApiResponse writeComment(ReviewRequest.WriteComment request, Authentication authentication){
+    public ApiResponse writeComment(ReviewRequest.CreateComment request, Authentication authentication){
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
         User writer = userRepository.findById(userDetails.getUserId()).get();

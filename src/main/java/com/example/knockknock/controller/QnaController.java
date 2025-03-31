@@ -22,7 +22,7 @@ public class QnaController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse writeQna(@RequestBody QnaRequest.Write request, Authentication authentication){
+    public ApiResponse writeQna(@RequestBody QnaRequest.Create request, Authentication authentication){
         return qnaService.writeQna(request, authentication);
     }
 
@@ -60,7 +60,17 @@ public class QnaController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
     public ApiResponse writeComment(@PathVariable Long qnaId,
-                                    @RequestBody QnaRequest.WriteComment request, Authentication authentication){
+                                    @RequestBody QnaRequest.CreateComment request, Authentication authentication){
         return qnaService.writeComment(qnaId, request, authentication);
+    }
+
+    @PutMapping("/comments/{commentId}")
+    @Operation(summary = "QnA 댓글 수정", description = "QnA에 댓글을 수정합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
+    })
+    public ApiResponse updateComment(@PathVariable Long commentId, @RequestBody QnaRequest.UpdateComment request,
+                                     Authentication authentication){
+        return qnaService.updateComment(commentId, request, authentication);
     }
 }
