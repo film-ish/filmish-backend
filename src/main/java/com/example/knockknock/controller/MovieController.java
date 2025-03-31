@@ -68,4 +68,13 @@ public class MovieController {
         return movieService.listCommercial();
     }
 
+    @PostMapping("/like-commercial")
+    @Operation(summary = "상업 영화 좋아요 등록", description = "상업 영화 좋아요를 등록합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
+    })
+    public ApiResponse likeCommercial(@RequestBody MovieRequest.LikeCommercial request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return movieService.likeCommercial(request, userDetails);
+    }
+
 }

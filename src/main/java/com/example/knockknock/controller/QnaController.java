@@ -1,5 +1,6 @@
 package com.example.knockknock.controller;
 
+import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.request.QnaRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.service.QnaService;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,8 +24,8 @@ public class QnaController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse writeQna(@RequestBody QnaRequest.Create request, Authentication authentication){
-        return qnaService.writeQna(request, authentication);
+    public ApiResponse writeQna(@RequestBody QnaRequest.Create request, @AuthenticationPrincipal CustomUserDetails userDetails){
+        return qnaService.writeQna(request, userDetails);
     }
 
     @PutMapping("/{qnaId}")
@@ -31,8 +33,8 @@ public class QnaController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
     })
-    public ApiResponse updateQna(@PathVariable Long qnaId, @RequestBody QnaRequest.Update request, Authentication authentication){
-        return qnaService.updateQna(qnaId, request, authentication);
+    public ApiResponse updateQna(@PathVariable Long qnaId, @RequestBody QnaRequest.Update request, @AuthenticationPrincipal CustomUserDetails userDetails){
+        return qnaService.updateQna(qnaId, request, userDetails);
     }
 
     @DeleteMapping("/{qnaId}")
@@ -40,8 +42,8 @@ public class QnaController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 삭제함")
     })
-    public ApiResponse deleteQna(@PathVariable Long qnaId, Authentication authentication){
-        return qnaService.deleteQna(qnaId, authentication);
+    public ApiResponse deleteQna(@PathVariable Long qnaId, @AuthenticationPrincipal CustomUserDetails userDetails){
+        return qnaService.deleteQna(qnaId, userDetails);
     }
 
     @GetMapping("/{makerId}")
@@ -60,8 +62,8 @@ public class QnaController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
     public ApiResponse writeComment(@PathVariable Long qnaId,
-                                    @RequestBody QnaRequest.CreateComment request, Authentication authentication){
-        return qnaService.writeComment(qnaId, request, authentication);
+                                    @RequestBody QnaRequest.CreateComment request, @AuthenticationPrincipal CustomUserDetails userDetails){
+        return qnaService.writeComment(qnaId, request, userDetails);
     }
 
     @PutMapping("/comments/{commentId}")
@@ -70,8 +72,8 @@ public class QnaController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
     })
     public ApiResponse updateComment(@PathVariable Long commentId, @RequestBody QnaRequest.UpdateComment request,
-                                     Authentication authentication){
-        return qnaService.updateComment(commentId, request, authentication);
+                                     @AuthenticationPrincipal CustomUserDetails userDetails){
+        return qnaService.updateComment(commentId, request, userDetails);
     }
 
     @DeleteMapping("/comments/{commentId}")
@@ -79,7 +81,7 @@ public class QnaController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 삭제함")
     })
-    public ApiResponse deleteComment(@PathVariable Long commentId, Authentication authentication){
-        return qnaService.deleteComment(commentId, authentication);
+    public ApiResponse deleteComment(@PathVariable Long commentId, @AuthenticationPrincipal CustomUserDetails userDetails){
+        return qnaService.deleteComment(commentId, userDetails);
     }
 }

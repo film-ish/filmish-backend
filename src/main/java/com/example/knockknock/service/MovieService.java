@@ -26,6 +26,7 @@ public class MovieService {
     private final MakerMovieRepository makerMovieRepository;
     private final CommercialMovieRepository commercialMovieRepository;
     private final CommercialGenreRepository commercialGenreRepository;
+    private final LikeCommercialRepository likeCommercialRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final S3Service s3Service;
@@ -38,30 +39,19 @@ public class MovieService {
         User userEntity = userRepository.findById(userId).get();
         IndieMovie indieMovie = indieMovieRepository.findById(indieId).get();
 
-        log.info("좋아요 등록 로직 실행 ");
-
         // 이미 좋아요 등록한 내역이 있는지 확인
         Optional<LikeIndie> likedIndie = likeIndieRepository.findByIndieMovieIdAndUserId(indieId, userId);
-        log.info(likedIndie.toString());
-        log.info("userId = " + userId + ", indieId = " + indieId);
-        log.info("likeIndie.isEmpty(): " + likedIndie.isEmpty());
         if (likedIndie.isPresent()){
-            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "already liked this movie");
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미 등록된 영화입니다.");
         }
-
-
 
         LikeIndie likeIndie = com.example.knockknock.entity.LikeIndie.builder()
                                 .user(userEntity)
                                 .indieMovie(indieMovie)
                                 .build();
 
-        log.info("likeIndie 객체 생성");
-
         likeIndieRepository.save(likeIndie);
-
         log.info("보고싶어요 등록이 완료되었습니다.");
-
         return ApiSuccessResponse.response(ResponseCode.Created, "보고싶어요 등록이 완료되었습니다.", null);
     }
 
@@ -150,6 +140,22 @@ public class MovieService {
                 .toList();
 
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", movieList);
+    }
+
+    public ApiResponse likeCommercial(MovieRequest.LikeCommercial request, CustomUserDetails customUserDetails){
+        List<Long> commercialId = request.getCommercialId();
+
+        commercialId.forEach(id -> {
+            User userEntity = userRepository.findById(customUserDetails.getUserId()).get();
+            CommercialMovie movie = commercialMovieRepository.findById(id).get();
+            likeCommercialRepository.save(LikeCommercial.builder()
+                    .user(userEntity)
+                    .commercialMovie(movie)
+                    .build());
+        });
+
+        log.info("보고싶어요 등록이 완료되었습니다.");
+        return ApiSuccessResponse.response(ResponseCode.Created, "보고싶어요 등록이 완료되었습니다.", null);
     }
 
 
