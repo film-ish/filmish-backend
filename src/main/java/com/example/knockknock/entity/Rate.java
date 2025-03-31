@@ -13,6 +13,14 @@ import org.hibernate.annotations.Where;
 @SuperBuilder
 @SQLDelete(sql = "UPDATE qna SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
+@Table(name = "rate",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "unique_user_indie",
+                        columnNames = {"user_id", "indie_id"}
+                )
+        }
+)
 public class Rate extends BaseTimeEntity {
     @Id
     @Column(name = "id", nullable = false)
