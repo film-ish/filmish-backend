@@ -104,6 +104,15 @@ public class RateService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "평점 수정이 완료되었습니다.", null);
     }
 
+    public ApiResponse deleteRate(Long rateId){
+        Rate rate = rateRepository.findById(rateId).get();
+        if(rate.isSoftDeleted()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미 삭제된 평점입니다.");
+        }
+        rate.deleteSoftly(Instant.now());
+        rateRepository.save(rate);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "영화 평점을 성공적으로 삭제했습니다.", null);
+    }
 
 
 }
