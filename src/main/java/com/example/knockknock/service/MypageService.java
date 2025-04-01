@@ -27,6 +27,8 @@ public class MypageService {
     private final ReviewImageRepository reviewImageRepository;
     private final QnaRepository qnaRepository;
     private final QnaCommentRepository qnaCommentRepository;
+    private final ReviewCommentRepository reviewCommentRepository;
+    private final UserRepository userRepository;
 
     public ApiResponse listLikeIndie(Long userId, int pageNum, int pageSize){
         Pageable pageable = PageRequest.of(pageNum, pageSize);
@@ -93,5 +95,23 @@ public class MypageService {
                     return MypageResponse.QnaDetail.of(qna, maker, comments);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", qnaPage);
+    }
+
+    public ApiResponse listReviewComments(Long userId, int pageNum, int pageSize){
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<MypageResponse.CommentReviewDetail> reviewPage = reviewCommentRepository.findByUserId(userId, pageable)
+                .map(reviewComment -> {
+                    Review review = reviewRepository.findById(reviewComment.getReview().getId()).get();
+                    IndieMovie movie = indieMovieRepository.findById(review.getIndieMovie().getId()).get();
+
+                    Optional<List<ReviewImage>> imageList = reviewImageRepository.findByReviewId(review.getId());
+                    List<ReviewImageResponse.Detail> images = imageList.isEmpty() ? null : imageList.get().stream()
+                            .map(reviewImage -> {
+                                return ReviewImageResponse.Detail.of(reviewImage);
+                            }).toList();
+
+                    return MypageResponse.CommentReviewDetail.of(review, movie, images);
+                });
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
     }
 }

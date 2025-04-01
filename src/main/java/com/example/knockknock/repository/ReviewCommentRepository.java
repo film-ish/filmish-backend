@@ -12,10 +12,14 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReviewCommentRepository extends JpaRepository<ReviewComment, Long> {
-    @Query(value = "SELECT c FROM ReviewComment c WHERE c.review.id = :reviewId",
-            countQuery = "SELECT COUNT(c) FROM ReviewComment c WHERE c.review.id = :reviewId")
+    @Query(value = "SELECT rc FROM ReviewComment rc WHERE rc.review.id = :reviewId",
+            countQuery = "SELECT COUNT(rc) FROM ReviewComment rc WHERE rc.review.id = :reviewId")
     Page<ReviewComment> findByReviewId(@Param("reviewId") Long reviewId, Pageable pageable);
 
-    @Query("SELECT c FROM ReviewComment c WHERE c.parentComment.id = :parentId")
+    @Query("SELECT rc FROM ReviewComment rc WHERE rc.parentComment.id = :parentId")
     Optional<List<ReviewComment>> findByParentCommentId(Long parentId);
+
+    @Query(value = "SELECT rc FROM ReviewComment rc WHERE rc.user.id = :userId",
+            countQuery = "SELECT COUNT(rc) FROM ReviewComment rc WHERE rc.user.id = :userId")
+    Page<ReviewComment> findByUserId(Long userId, Pageable pageable);
 }

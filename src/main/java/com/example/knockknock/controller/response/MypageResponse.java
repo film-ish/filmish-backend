@@ -95,4 +95,37 @@ public class MypageResponse {
                     .build();
         }
     }
+
+    @Getter
+    @Builder
+    public static class CommentReviewDetail {
+        private Long reviewId;
+        private String title;
+        private String content;
+        private String writerName;
+        private String writerImage;
+        private Instant createdAt;
+        private Instant updatedAt;
+        private int views;
+        private List<ReviewImageResponse.Detail> images;
+        private Long movieId;
+        private String movieTitle;
+
+        public static CommentReviewDetail of(Review review, IndieMovie indieMovie,
+                                             List<ReviewImageResponse.Detail> images){
+            return CommentReviewDetail.builder()
+                    .reviewId(review.getId())
+                    .title(review.getTitle())
+                    .content(review.getContent())
+                    .writerName(review.getUser().getNickname())
+                    .writerImage(review.getUser().getHeadImage())
+                    .createdAt(review.getCreatedAt())
+                    .updatedAt(review.getUpdatedAt())
+                    .views(review.getViews())
+                    .images(images)
+                    .movieId(indieMovie.getId())
+                    .movieTitle(indieMovie.getTitle())
+                    .build();
+        }
+    }
 }
