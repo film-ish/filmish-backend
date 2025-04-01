@@ -1,8 +1,6 @@
 package com.example.knockknock.controller.response;
 
-import com.example.knockknock.entity.IndieMovie;
-import com.example.knockknock.entity.Rate;
-import com.example.knockknock.entity.Review;
+import com.example.knockknock.entity.*;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -64,6 +62,36 @@ public class MypageResponse {
                     .views(review.getViews())
                     .movieId(indieMovie.getId())
                     .movieTitle(indieMovie.getTitle())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class QnaDetail {
+        private Long qnaId;
+        private String title;
+        private String content;
+        private Instant createdAt;
+        private Instant updatedAt;
+        private String writerName;
+        private String writerImage;
+        private Long makerId;
+        private String makerName;
+        private List<QnaCommentResponse.Detail> comments;
+
+        public static QnaDetail of(Qna qna, Maker maker, List<QnaCommentResponse.Detail> comments){
+            return QnaDetail.builder()
+                    .qnaId(qna.getId())
+                    .title(qna.getTitle())
+                    .content(qna.getContent())
+                    .createdAt(qna.getCreatedAt())
+                    .updatedAt(qna.getUpdatedAt())
+                    .writerName(qna.getUser().getNickname())
+                    .writerName(qna.getUser().getHeadImage())
+                    .makerId(maker.getId())
+                    .makerName(maker.getName())
+                    .comments(comments)
                     .build();
         }
     }

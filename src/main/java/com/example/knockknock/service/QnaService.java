@@ -123,16 +123,21 @@ public class QnaService {
     public ApiResponse writeComment(Long qnaId, QnaRequest.CreateComment request,
                                     CustomUserDetails userDetails){
         User writer = userRepository.findById(userDetails.getUserId()).get();
-
+        QnaComment parentComment = null;
         Optional<Qna> qna = qnaRepository.findByIdWithLock(qnaId);
         if(qna.isEmpty()){
             return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "존재하지 않는 게시물입니다.");
+        }
+
+        if (request.getParentId() != null) {
+            parentComment = qnaCommentRepository.findById(request.getParentId()).get();
         }
 
         QnaComment qnaComment = QnaComment.builder()
                 .content(request.getContent())
                 .user(writer)
                 .qna(qna.get())
+                .parentComment(parentComment)
                 .createdAt(Instant.now())
                 .build();
 

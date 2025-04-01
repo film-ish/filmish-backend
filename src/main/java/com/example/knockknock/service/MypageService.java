@@ -25,6 +25,8 @@ public class MypageService {
     private final RateRepository rateRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
+    private final QnaRepository qnaRepository;
+    private final QnaCommentRepository qnaCommentRepository;
 
     public ApiResponse listLikeIndie(Long userId, int pageNum, int pageSize){
         Pageable pageable = PageRequest.of(pageNum, pageSize);
@@ -71,5 +73,25 @@ public class MypageService {
                     return MypageResponse.ReviewDetail.of(review, movie, images);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
+    }
+
+    public ApiResponse listQnas(Long userId, int pageNum, int pageSize){
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<MypageResponse.QnaDetail> qnaPage = qnaRepository.findByUserId(userId, pageable)
+                .map(qna -> {
+                    Maker maker = qna.getMaker();
+                    Optional<List<QnaComment>> commentList = qnaCommentRepository.findByQnaId(qna.getId());
+                    List<QnaCommentResponse.Detail> comments = commentList.isEmpty() ? null : commentList.get().stream()
+                            .map(qnaComment -> {
+                                Optional<List<QnaComment>> subcommentList = qnaCommentRepository.findByParentCommentId(qnaComment.getId());
+                                List<QnaCommentResponse.Detail> subcomments = subcommentList.isEmpty() ? null : subcommentList.get().stream()
+                                        .map(subcomment -> {
+                                            return QnaCommentResponse.Detail.of(subcomment, subcomment.getUser(), null);
+                                        }).toList();
+                                return QnaCommentResponse.Detail.of(qnaComment, qnaComment.getUser(), subcomments);
+                            }).toList();
+                    return MypageResponse.QnaDetail.of(qna, maker, comments);
+                });
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", qnaPage);
     }
 }

@@ -20,4 +20,8 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT q FROM Qna q WHERE q.id = :id")
     Optional<Qna> findByIdWithLock(@Param("id") Long id);
+
+    @Query(value = "SELECT q FROM Qna q WHERE q.user.id = :userId",
+            countQuery = "SELECT COUNT(q) FROM Qna q WHERE q.user.id = :userId")
+    Page<Qna> findByUserId(@Param("userId") Long userId, Pageable pageable);
 }

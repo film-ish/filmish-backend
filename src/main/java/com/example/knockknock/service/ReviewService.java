@@ -141,14 +141,15 @@ public class ReviewService {
     }
 
     public ApiResponse detailReview(Long reviewId){
-        log.info("입력된 reviewId = " + reviewId);
         Optional<Review> selectReview = reviewRepository.findById(reviewId);
         Review savedReview = null;
-        if(!selectReview.isEmpty()) {
-            Review review = selectReview.get();
-            review.setViews(review.getViews() + 1);
-            savedReview = reviewRepository.save(review);
+        if(selectReview.isEmpty()){
+            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "존재하지 않는 게시물입니다.");
         }
+
+        Review review = selectReview.get();
+        review.setViews(review.getViews() + 1);
+        savedReview = reviewRepository.save(review);
 
         List<ReviewImageResponse.Detail> images = null;
         Optional<List<ReviewImage>> imageList = reviewImageRepository.findByReviewId(reviewId);
