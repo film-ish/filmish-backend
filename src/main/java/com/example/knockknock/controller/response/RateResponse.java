@@ -8,6 +8,9 @@ import java.time.Instant;
 @Data
 public class RateResponse {
     @Builder
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Detail {
         private Long id;
         private String writerName;

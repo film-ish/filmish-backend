@@ -9,6 +9,8 @@ import com.example.knockknock.controller.response.ResponseCode;
 import com.example.knockknock.entity.IndieMovie;
 import com.example.knockknock.entity.Rate;
 import com.example.knockknock.entity.User;
+import com.example.knockknock.error.code.ErrorCode;
+import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.repository.IndieMovieRepository;
 import com.example.knockknock.repository.RateRepository;
 import com.example.knockknock.repository.UserRepository;
@@ -73,12 +75,11 @@ public class RateService {
 
     public ApiResponse detailRate(Long rateId){
         Optional<Rate> selectRate = rateRepository.findById(rateId);
+        log.info("입력된 rateId = " + rateId);
+        if (selectRate.isEmpty()){
+            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "해당 평점을 찾을 수 없습니다.");
+        }
         Rate rate = selectRate.get();
-
-        //TODO(이효미): 평점이 없을 경우, 예외 처리
-        //        if (selectRate.isEmpty()){
-        //            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "해당 평점을 찾을 수 없습니다.");
-        //        }
 
         RateResponse.Detail rateResponse = RateResponse.Detail.of(
                 rate,
@@ -87,7 +88,5 @@ public class RateService {
         );
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 평점을 성공적으로 조회했습니다.", rateResponse);
     }
-
-
 
 }
