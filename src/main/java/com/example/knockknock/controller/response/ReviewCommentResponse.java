@@ -19,7 +19,7 @@ public class ReviewCommentResponse {
         private String writerImage;
         private String writerType;
         private String content;
-        private List<Detail> comments;
+        private List<Detail> subComments;
 
         public static Detail of(ReviewComment reviewComment,
                                                       User writer, MakerMovie makerMovie,
@@ -30,7 +30,7 @@ public class ReviewCommentResponse {
                     .writerImage(writer.getHeadImage())
                     .writerType(makerMovie != null ? makerMovie.getType().toString() : null)
                     .content(reviewComment.getContent())
-                    .comments(comments)
+                    .subComments(comments)
                     .build();
         }
     }

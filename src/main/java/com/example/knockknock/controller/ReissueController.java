@@ -96,6 +96,7 @@ public class ReissueController {
         String newRefresh = tokenProvider.createJwt("refresh", userEmail, nickname, role, REFRESH_TOKEN_EXPIRE_TIME);
 
         addToken("RT:AT:" + userEmail, newAccess, ACCESS_TOKEN_EXPIRE_TIME);
+        addToken("RT:RT:" + userEmail, newRefresh, REFRESH_TOKEN_EXPIRE_TIME);
 
         // response
         response.setHeader("access", newAccess);

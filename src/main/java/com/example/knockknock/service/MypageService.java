@@ -30,7 +30,7 @@ public class MypageService {
     private final ReviewCommentRepository reviewCommentRepository;
     private final UserRepository userRepository;
 
-    public ApiResponse listLikeIndie(Long userId, int pageNum, int pageSize){
+    public ApiResponse listLikeIndie(Long userId, int pageNum, int pageSize) {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<IndieResponse.LikeDetail> likePage = likeIndieRepository.findByUserId(userId, pageable)
                 .map(likeIndie -> {
@@ -49,7 +49,7 @@ public class MypageService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", likePage);
     }
 
-    public ApiResponse listRating(Long userId, int pageNum, int pageSize){
+    public ApiResponse listRating(Long userId, int pageNum, int pageSize) {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<MypageResponse.RateDetail> ratePage = rateRepository.findByUserId(userId, pageable)
                 .map(rate -> {
@@ -61,7 +61,7 @@ public class MypageService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", ratePage);
     }
 
-    public ApiResponse listReviews(Long userId, int pageNum, int pageSize){
+    public ApiResponse listReviews(Long userId, int pageNum, int pageSize) {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<MypageResponse.ReviewDetail> reviewPage = reviewRepository.findByUserId(userId, pageable)
                 .map(review -> {
@@ -77,7 +77,7 @@ public class MypageService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
     }
 
-    public ApiResponse listQnas(Long userId, int pageNum, int pageSize){
+    public ApiResponse listQnas(Long userId, int pageNum, int pageSize) {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<MypageResponse.QnaDetail> qnaPage = qnaRepository.findByUserId(userId, pageable)
                 .map(qna -> {
@@ -97,7 +97,7 @@ public class MypageService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", qnaPage);
     }
 
-    public ApiResponse listReviewComments(Long userId, int pageNum, int pageSize){
+    public ApiResponse listReviewComments(Long userId, int pageNum, int pageSize) {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<MypageResponse.CommentReviewDetail> reviewPage = reviewCommentRepository.findByUserId(userId, pageable)
                 .map(reviewComment -> {
@@ -113,5 +113,30 @@ public class MypageService {
                     return MypageResponse.CommentReviewDetail.of(review, movie, images);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
+    }
+
+    public ApiResponse listQnaComments(Long userId, int pageNum, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Optional<List<QnaComment>> replyList = qnaCommentRepository.findByUserId(userId);
+        List<QnaComment> replies = replyList.isEmpty() ? null : replyList.get();
+        List<Long> replyIds = replies.stream()
+                .map(qnaComment -> {
+                    return qnaComment.getId();
+                }).toList();
+        Page<QnaResponse.Detail> qnaPage = qnaRepository.findDistinctQnasByCommentIds(replyIds, pageable)
+                .map(qna -> {
+                    List<QnaComment> commentList = qnaCommentRepository.findByQnaId(qna.getId()).get();
+                    List<QnaCommentResponse.Detail> comments = commentList.stream()
+                            .map(qnaComment -> {
+                                Optional<List<QnaComment>> subCommentList = qnaCommentRepository.findByParentCommentId(qnaComment.getId());
+                                List<QnaCommentResponse.Detail> subComments = subCommentList.isEmpty() ? null : subCommentList.get().stream()
+                                        .map(subComment -> {
+                                            return QnaCommentResponse.Detail.of(subComment, subComment.getUser(), null);
+                                        }).toList();
+                                return QnaCommentResponse.Detail.of(qnaComment, qnaComment.getUser(), subComments);
+                            }).toList();
+                    return QnaResponse.Detail.of(qna, qna.getUser(), comments);
+                });
+        return ApiSuccessResponse.response(ResponseCode.Ok, " 성공적으로 조회되었습니다.", qnaPage);
     }
 }

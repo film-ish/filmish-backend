@@ -24,4 +24,11 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
     @Query(value = "SELECT q FROM Qna q WHERE q.user.id = :userId",
             countQuery = "SELECT COUNT(q) FROM Qna q WHERE q.user.id = :userId")
     Page<Qna> findByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT DISTINCT q FROM Qna q WHERE q.id = :qnaId")
+    Optional<Qna> findByDistinctId(Long qnaId);
+
+    @Query(value = "SELECT DISTINCT qc.qna FROM QnaComment qc WHERE qc.id IN :commentIds",
+            countQuery = "SELECT COUNT(DISTINCT qc.qna.id) FROM QnaComment qc WHERE qc.id IN :commentIds")
+    Page<Qna> findDistinctQnasByCommentIds(@Param("commentIds") List<Long> commentIds, Pageable pageable);
 }
