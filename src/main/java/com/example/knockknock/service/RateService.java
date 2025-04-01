@@ -2,6 +2,7 @@ package com.example.knockknock.service;
 
 import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.request.RateRequest;
+import com.example.knockknock.controller.request.ReviewRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.controller.response.ApiSuccessResponse;
 import com.example.knockknock.controller.response.RateResponse;
@@ -88,5 +89,21 @@ public class RateService {
         );
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 평점을 성공적으로 조회했습니다.", rateResponse);
     }
+
+    public ApiResponse updateRate(RateRequest.Update request, Long rateId){
+        Rate rate = rateRepository.findById(rateId).get();
+
+        if(rate.getDeletedAt() != null){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미 삭제된 평점입니다.");
+        }
+        rate.setValue(request.getValue());
+        rate.setContent(request.getContent());
+
+        rateRepository.save(rate);
+
+        return ApiSuccessResponse.response(ResponseCode.Ok, "평점 수정이 완료되었습니다.", null);
+    }
+
+
 
 }

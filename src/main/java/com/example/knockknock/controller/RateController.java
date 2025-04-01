@@ -36,4 +36,12 @@ public class RateController {
         return rateService.detailRate(rateId);
     }
 
+    @PutMapping("/{rateId}")
+    @Operation(summary = "영화 평점 수정", description = "영화 평점을 수정합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
+    })
+    public ApiResponse updateRate(@PathVariable Long rateId, @RequestBody RateRequest.Update request){
+        return rateService.updateRate(request, rateId);
+    }
 }

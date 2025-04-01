@@ -16,6 +16,7 @@ public class RateResponse {
         private String writerName;
         private String writerImage;
         private float value;
+        private String content;
         private Instant createdAt;
         private Instant updatedAt;
 
