@@ -1,6 +1,5 @@
 package com.example.knockknock.repository;
 
-import com.example.knockknock.entity.Review;
 import com.example.knockknock.entity.ReviewComment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -42,24 +42,24 @@ public class IndieResponse {
 
     @Getter
     @Builder
-    public static class LikeDetail {
+    public static class LikeDetail<T> {
         private Long id;
         private String title;
         private String poster;
         private Date pubDate;
         private int runningTime;
-        private float average;
+        private T value;
         private List<String> genres;
 
-        public static LikeDetail of(IndieMovie movie, String poster,
-                                    float average, List<String> genres){
-            return LikeDetail.builder()
+        public static <T> LikeDetail<T> of(IndieMovie movie, String poster,
+                                    T value, List<String> genres){
+            return LikeDetail.<T>builder()
                     .id(movie.getId())
                     .title(movie.getTitle())
                     .poster(poster)
                     .pubDate(movie.getPubdate())
                     .runningTime(movie.getRunningTime())
-                    .average(average)
+                    .value(value)
                     .genres(genres)
                     .build();
         }

@@ -14,19 +14,19 @@ public class MainResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
-    public static class AllList{
+    public static class AllList<L, F>{
         private List<ReviewResponse.Detail> bestReviews;
-        private List<IndieResponse.Approximate> latest;
-        private List<IndieResponse.LikeDetail> orderByLikes;
-        private List<IndieResponse.LikeDetail> orderByAvg;
+        private List<IndieResponse.Approximate> orderByPubdate;
+        private List<IndieResponse.LikeDetail<L>> orderByLikes;
+        private List<IndieResponse.LikeDetail<F>> orderByAvg;
 
-        public static AllList of(List<ReviewResponse.Detail> bestReviews,
-                                 List<IndieResponse.Approximate> latest,
-                                 List<IndieResponse.LikeDetail> orderByLikes,
-                                 List<IndieResponse.LikeDetail> orderByAvg){
-            return AllList.builder()
+        public static <L, F> AllList<L, F> of(List<ReviewResponse.Detail> bestReviews,
+                                 List<IndieResponse.Approximate> orderByPubdate,
+                                 List<IndieResponse.LikeDetail<L>> orderByLikes,
+                                 List<IndieResponse.LikeDetail<F>> orderByAvg){
+            return AllList.<L, F>builder()
                     .bestReviews(bestReviews)
-                    .latest(latest)
+                    .orderByPubdate(orderByPubdate)
                     .orderByLikes(orderByLikes)
                     .orderByAvg(orderByAvg)
                     .build();

@@ -67,7 +67,7 @@ public class MovieService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "보고싶어요 삭제가 완료되었습니다.", null);
     }
 
-    public ApiResponse movieInfo(Long movieId){
+    public ApiResponse movieDetail(Long movieId){
         Optional<IndieMovie> indieMovie = indieMovieRepository.findById(movieId);
         if (indieMovie.isEmpty()) {
             return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "조회한 영화가 존재하지 않습니다.");
@@ -160,7 +160,7 @@ public class MovieService {
     }
 
     public ApiResponse genreMovies(Long genreId){
-        List<IndieResponse.LikeDetail> genreMovies = null;
+        List<IndieResponse.LikeDetail<Float>> genreMovies = null;
         List<IndieGenre> indieGenres = indieGenreRepository.findByGenreId(genreId).orElse(Collections.emptyList());
         if(!indieGenres.isEmpty()){
             genreMovies = indieGenres.stream()

@@ -45,7 +45,7 @@ public class MovieController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
     public ApiResponse movieInfo(@PathVariable Long movieId){
-        return movieService.movieInfo(movieId);
+        return movieService.movieDetail(movieId);
     }
 
     @GetMapping("{movieId}/reviews")
@@ -78,7 +78,7 @@ public class MovieController {
     }
 
     @GetMapping("/genre/{genreId}")
-    @Operation(summary = "장르별 영화 목록 조회", description = "장르별 영화 목록을 조회합니다.")
+    @Operation(summary = "장르별 전체 영화 목록 조회", description = "장르별 전체 영화 목록을 조회합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
