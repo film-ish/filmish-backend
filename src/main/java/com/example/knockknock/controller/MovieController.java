@@ -77,4 +77,13 @@ public class MovieController {
         return movieService.likeCommercial(request, userDetails);
     }
 
+    @GetMapping("/genre/{genreId}")
+    @Operation(summary = "장르별 영화 목록 조회", description = "장르별 영화 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
+    })
+    public ApiResponse genreMovies(@PathVariable Long genreId) {
+        return movieService.genreMovies(genreId);
+    }
+
 }

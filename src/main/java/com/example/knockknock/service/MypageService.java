@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,8 +36,9 @@ public class MypageService {
         Page<IndieResponse.LikeDetail> likePage = likeIndieRepository.findByUserId(userId, pageable)
                 .map(likeIndie -> {
                     IndieMovie movie = likeIndie.getIndieMovie();
-                    List<Poster> posters = posterRepository.findByIndieId(movie.getId());
-                    List<IndieGenre> indieGenres = indieGenreRepository.findByIndieId(movie.getId());
+                    Long movieId = movie.getId();
+                    List<Poster> posters = posterRepository.findByIndieId(movieId).orElse(Collections.emptyList());
+                    List<IndieGenre> indieGenres = indieGenreRepository.findByIndieId(movieId).orElse(Collections.emptyList());
 
                     List<String> categories = indieGenres
                             .stream()
@@ -44,7 +46,17 @@ public class MypageService {
                             .toList();
 
                     String posterUrl = posters.isEmpty() ? null : posters.get(0).getPoster();
-                    return IndieResponse.LikeDetail.of(movie, posterUrl, categories);
+
+                    // 평점 계산
+                    List<Rate> rates = rateRepository.findByIndieId(movieId)
+                            .orElse(Collections.emptyList());
+
+                    float average = (float) rates.stream()
+                            .mapToDouble(Rate::getValue) // Rate 객체에서 평균값 추출
+                            .average()                   // 평균 계산 (OptionalDouble 반환)
+                            .orElse(0.0);         // 평균 값 없으면 0.0 반환
+
+                    return IndieResponse.LikeDetail.of(movie, posterUrl, average, categories);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", likePage);
     }
@@ -54,9 +66,12 @@ public class MypageService {
         Page<MypageResponse.RateDetail> ratePage = rateRepository.findByUserId(userId, pageable)
                 .map(rate -> {
                     IndieMovie movie = rate.getIndieMovie();
-                    Poster poster = posterRepository.findByIndieId(movie.getId()).get(0);
-
-                    return MypageResponse.RateDetail.of(rate, movie, poster.getPoster());
+                    String poster = null;
+                    List<Poster> posters = posterRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
+                    if (!posters.isEmpty()){
+                        poster = posters.get(0).getPoster();
+                    }
+                    return MypageResponse.RateDetail.of(rate, movie, poster);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", ratePage);
     }

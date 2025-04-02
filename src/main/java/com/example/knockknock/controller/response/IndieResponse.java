@@ -1,8 +1,10 @@
 package com.example.knockknock.controller.response;
 
 import com.example.knockknock.entity.IndieMovie;
+import com.example.knockknock.entity.Review;
 import lombok.*;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -45,15 +47,41 @@ public class IndieResponse {
         private String title;
         private String poster;
         private Date pubDate;
-        private List<String> categories;
+        private int runningTime;
+        private float average;
+        private List<String> genres;
 
-        public static LikeDetail of(IndieMovie movie, String poster, List<String> categories){
+        public static LikeDetail of(IndieMovie movie, String poster,
+                                    float average, List<String> genres){
             return LikeDetail.builder()
                     .id(movie.getId())
                     .title(movie.getTitle())
                     .poster(poster)
                     .pubDate(movie.getPubdate())
-                    .categories(categories)
+                    .runningTime(movie.getRunningTime())
+                    .average(average)
+                    .genres(genres)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class Approximate {
+        private Long id;
+        private String title;
+        private float average;
+        private String stillcut;
+
+        public static Approximate of(IndieMovie movie, float average, String stillcut){
+            return Approximate.builder()
+                    .id(movie.getId())
+                    .title(movie.getTitle())
+                    .average(average)
+                    .stillcut(stillcut)
                     .build();
         }
     }

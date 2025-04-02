@@ -75,7 +75,6 @@ public class UserService {
                 .build();
 
         userRepository.save(data);
-
         return ApiSuccessResponse.response(ResponseCode.Created, "Join request success!", null);
     }
 

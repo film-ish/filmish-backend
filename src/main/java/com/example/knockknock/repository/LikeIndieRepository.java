@@ -17,4 +17,7 @@ public interface LikeIndieRepository extends JpaRepository<LikeIndie, Long> {
     @Query(value = "SELECT l FROM LikeIndie l WHERE l.user.id = :userId",
             countQuery = "SELECT COUNT(l) FROM LikeIndie l WHERE l.user.id = :userId")
     Page<LikeIndie> findByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT l FROM LikeIndie l WHERE l.indieMovie.id = :indieId")
+    Optional<List<LikeIndie>> findByIndieId(Long indieId);
 }
