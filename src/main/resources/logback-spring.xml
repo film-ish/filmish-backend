@@ -106,5 +106,5 @@
   <logger name="org.springframework" level="INFO"/>
   <logger name="org.hibernate" level="INFO"/>
   <!-- 본인 애플리케이션 패키지 로그 레벨 -->
-  <logger name="com.knockknock" level="DEBUG"/>
+  <logger name="com.example.knockknock" level="DEBUG"/>
 </configuration>
