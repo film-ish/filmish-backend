@@ -2,7 +2,6 @@ package com.example.knockknock.service;
 
 import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.request.RateRequest;
-import com.example.knockknock.controller.request.ReviewRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.controller.response.ApiSuccessResponse;
 import com.example.knockknock.controller.response.RateResponse;

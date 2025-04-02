@@ -11,4 +11,7 @@ public interface RateRepository extends JpaRepository<Rate, Long> {
     @Query(value = "SELECT r FROM Rate r WHERE r.indieMovie.id = :indieId",
             countQuery = "SELECT COUNT(r) FROM Rate r WHERE r.indieMovie.id = :indieId")
     Page<Rate> findByIndieId(@Param("indieId") Long indieId, Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT m.indieMovie.id) FROM MakerMovie m WHERE m.maker.id = :makerId")
+    Long countDistinctMoviesByMakerId(@Param("makerId") Long makerId);
 }

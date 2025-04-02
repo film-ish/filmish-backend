@@ -30,4 +30,34 @@ public class MakerResponse {
                     .build();
         }
     }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class Detail {
+        private Long actorId;
+        private String name;
+        private String email;
+        private String role;
+        private String image;
+        private Long qnaCnt;
+        private Long indieCnt;
+        private String movieTitle;
+
+        public static MakerResponse.Detail of(Maker maker, String email, String role,
+                                              Long qnaCnt, Long indieCnt, String movieTitle) {
+            return Detail.builder()
+                    .actorId(maker.getId())
+                    .name(maker.getName())
+                    .email(email)
+                    .role(role)
+                    .image(maker.getThumbnailImage())
+                    .qnaCnt(qnaCnt)
+                    .indieCnt(indieCnt)
+                    .movieTitle(movieTitle)
+                    .build();
+        }
+    }
 }
