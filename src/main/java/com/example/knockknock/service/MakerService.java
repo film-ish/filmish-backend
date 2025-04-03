@@ -29,18 +29,21 @@ public class MakerService {
     private final UserMakerRepository userMakerRepository;
     private final QnaRepository qnaRepository;
 
-    public ApiResponse makerList(Long makerId, int pageNum, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Direction.DESC, "name"));
-        Page<MakerResponse.Detail> makerPage = makerMovieRepository.findByMakerId(makerId, pageable)
+    public ApiResponse makerList(int pageNum, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Direction.DESC, "maker.name"));
+        Page<MakerResponse.Detail> makerPage = makerMovieRepository.findAll(pageable)
                 .map(makerMovie -> {
                     Maker maker = makerMovie.getMaker();
 
                     UserMaker userMaker = userMakerRepository.findUserMakerByMakerId(maker.getId());
-                    String email = userMaker.getUser().getEmail();
+                    String email = (userMaker != null && userMaker.getUser() != null)
+                            ? userMaker.getUser().getEmail()
+                            : null;
                     String role = makerMovie.getType().toString();
                     Long postNum = qnaRepository.countByMakerId(maker.getId());
                     Long movieNum = makerMovieRepository.countByMakerId(maker.getId());
                     Optional<IndieMovie> indieMovie = makerMovieRepository.findRandomMovieByMakerId(maker.getId());
+                    String movieTitle = indieMovie.map(IndieMovie::getTitle).orElse("No Movie Found");
 
                     return MakerResponse.Detail.of(
                             maker,
@@ -48,7 +51,7 @@ public class MakerService {
                             role,
                             postNum,
                             movieNum,
-                            indieMovie.get().getTitle()
+                            movieTitle
                     );
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화인 목록이 성공적으로 조회되었습니다.", makerPage);

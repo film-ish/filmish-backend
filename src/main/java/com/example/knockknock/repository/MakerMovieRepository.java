@@ -21,6 +21,5 @@ public interface MakerMovieRepository extends JpaRepository<MakerMovie, Long> {
 
     Long countByMakerId(Long makerId);
 
-    @Query(value = "SELECT m.indieMovie FROM MakerMovie m WHERE m.maker.id = :makerId ORDER BY RAND() LIMIT 1", nativeQuery = true)
-    Optional<IndieMovie> findRandomMovieByMakerId(@Param("makerId") Long makerId);
-}
+    @Query("SELECT m.indieMovie FROM MakerMovie m WHERE m.maker.id = :makerId ORDER BY RAND() LIMIT 1")
+    Optional<IndieMovie> findRandomMovieByMakerId(@Param("makerId") Long makerId);}
