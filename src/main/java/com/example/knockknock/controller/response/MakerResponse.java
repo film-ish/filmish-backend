@@ -36,7 +36,7 @@ public class MakerResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
-    public static class Detail {
+    public static class ListItem {
         private Long actorId;
         private String name;
         private String email;
@@ -46,9 +46,9 @@ public class MakerResponse {
         private Long indieCnt;
         private String movieTitle;
 
-        public static MakerResponse.Detail of(Maker maker, String email, String role,
+        public static MakerResponse.ListItem of(Maker maker, String email, String role,
                                               Long qnaCnt, Long indieCnt, String movieTitle) {
-            return Detail.builder()
+            return ListItem.builder()
                     .actorId(maker.getId())
                     .name(maker.getName())
                     .email(email)
@@ -60,4 +60,52 @@ public class MakerResponse {
                     .build();
         }
     }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class Filmography {
+        private Long movieId;
+        private String movieName;
+        private String pubDate;
+
+        public static Filmography of(IndieMovie movie) {
+            String pubDateStr = movie.getPubdate() != null
+                    ? movie.getPubdate().toString()
+                    : null;
+
+            return Filmography.builder()
+                    .movieId(movie.getId())
+                    .movieName(movie.getTitle())
+                    .pubDate(pubDateStr)
+                    .build();
+        }
+    }
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class Detail {
+        private Long id;
+        private Long userId;
+        private String name;
+        private String image;
+        private Long qnaCount;
+        private List<Filmography> filmography;
+
+        public static Detail of(Maker maker, Long userId, Long qnaCount, List<Filmography> filmography) {
+            return Detail.builder()
+                    .id(maker.getId())
+                    .userId(userId)
+                    .name(maker.getName())
+                    .image(maker.getThumbnailImage())
+                    .qnaCount(qnaCount)
+                    .filmography(filmography)
+                    .build();
+        }
+    }
+
 }

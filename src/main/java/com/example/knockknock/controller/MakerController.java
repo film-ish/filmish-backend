@@ -27,4 +27,12 @@ public class MakerController {
         return makerService.makerList(pageNum, pageSize);
     }
 
+    @GetMapping("/{makerId}")
+    @Operation(summary = "영화인 상세 조회", description = "영화인을 상세 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
+    })
+    public ApiResponse makerMaker(@PathVariable Long makerId){
+        return makerService.detailMaker(makerId);
+    }
 }
