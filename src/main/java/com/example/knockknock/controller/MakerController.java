@@ -1,7 +1,9 @@
 package com.example.knockknock.controller;
 
 
+import com.example.knockknock.controller.request.MakerRequest;
 import com.example.knockknock.controller.response.ApiResponse;
+import com.example.knockknock.controller.response.ResponseCode;
 import com.example.knockknock.service.MakerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -32,7 +34,16 @@ public class MakerController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse makerMaker(@PathVariable Long makerId){
+    public ApiResponse detailMaker(@PathVariable Long makerId){
         return makerService.detailMaker(makerId);
+    }
+
+    @PatchMapping("/{makerId}")
+    @Operation(summary = "영화인 정보 수정", description = "영화인 정보를 수정합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
+    })
+    public ApiResponse updateMaker(@PathVariable Long makerId, @RequestBody MakerRequest.Update request){
+        return makerService.updateMaker(request, makerId);
     }
 }

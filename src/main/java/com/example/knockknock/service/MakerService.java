@@ -1,5 +1,6 @@
 package com.example.knockknock.service;
 
+import com.example.knockknock.controller.request.MakerRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.controller.response.ApiSuccessResponse;
 import com.example.knockknock.controller.response.MakerResponse;
@@ -21,7 +22,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.HashMap;
 import java.util.List;
@@ -96,5 +99,27 @@ public class MakerService {
                 filmography
         );
         return ApiSuccessResponse.response(ResponseCode.Ok, "상세 페이지가 조회되었습니다.", detail);
+    }
+
+    @Transactional
+    public ApiResponse updateMaker(@RequestBody MakerRequest.Update request, Long makerId) {
+        Optional<Maker> optionalMaker = makerRepository.findById(makerId);
+
+        if (optionalMaker.isEmpty()) {
+            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "해당 영화인을 찾을 수 없습니다.");
+        }
+
+        Maker maker = optionalMaker.get();
+
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이름은 필수 항목입니다.");
+        }
+
+        maker.setName(request.getName());
+        maker.setThumbnailImage(request.getImage());
+
+        makerRepository.save(maker);
+
+        return ApiSuccessResponse.response(ResponseCode.Ok, "영화인 수정이 완료되었습니다.", null);
     }
 }
