@@ -2,9 +2,17 @@ pipeline {
     agent any
 
     environment {
-        DB_URL = credentials('DB_URL')
-        DB_USERNAME = credentials('DB_USERNAME')
-        DB_PASSWORD = credentials('DB_PASSWORD')
+        DB_URL         = credentials('DB_URL')
+        DB_USERNAME    = credentials('DB_USERNAME')
+        DB_PASSWORD    = credentials('DB_PASSWORD')
+        DB_DRIVER      = credentials('DB_DRIVER')
+        JWT_SECRET     = credentials('JWT_SECRET')
+        REDIS_HOST     = credentials('REDIS_HOST')
+        REDIS_PORT     = credentials('REDIS_PORT')
+        AWS_ACCESS_KEY = credentials('AWS_ACCESS_KEY')
+        AWS_SECRET_KEY = credentials('AWS_SECRET_KEY')
+        AWS_S3_BUCKET  = credentials('AWS_S3_BUCKET')
+
     }
 
     stages {
@@ -53,6 +61,13 @@ pipeline {
 DB_URL=${DB_URL}
 DB_USERNAME=${DB_USERNAME}
 DB_PASSWORD=${DB_PASSWORD}
+DB_DRIVER=${DB_DRIVER}
+JWT_SECRET=${JWT_SECRET}
+REDIS_HOST=${REDIS_HOST}
+REDIS_PORT=${REDIS_PORT}
+AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+AWS_SECRET_KEY=${AWS_SECRET_KEY}
+AWS_S3_BUCKET=${AWS_S3_BUCKET}
 EOL
 
                     # 배포 스크립트 실행

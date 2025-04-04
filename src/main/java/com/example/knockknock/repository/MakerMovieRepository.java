@@ -30,4 +30,7 @@ public interface MakerMovieRepository extends JpaRepository<MakerMovie, Long> {
 
     @Query("SELECT mm FROM MakerMovie mm WHERE mm.maker.name LIKE %:name% AND mm.type = :type")
     List<MakerMovie> findByMakerNameContainingAndType(@Param("name") String name, @Param("type") Type type);
+
+    @Query("SELECT m FROM MakerMovie m WHERE m.maker.id = :makerId AND m.indieMovie.id = :indieId ")
+    Optional<MakerMovie> findByMakerIdAndUserId(Long makerId, Long indieId);
 }

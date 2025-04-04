@@ -19,4 +19,8 @@ public class CommercialGenre {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "commercial_id", nullable = false)
     private IndieMovie commercialMovie;
+
+    public Long getCommercialId(){
+        return this.commercialMovie.getId();
+    }
 }

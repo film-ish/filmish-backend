@@ -21,7 +21,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -75,7 +74,6 @@ public class UserService {
                 .build();
 
         userRepository.save(data);
-
         return ApiSuccessResponse.response(ResponseCode.Created, "Join request success!", null);
     }
 
@@ -266,10 +264,9 @@ public class UserService {
     }
 
     // 비밀 번호 수정
-    public ApiResponse modifyPassword(Authentication authentication, String newPassword) {
+    public ApiResponse modifyPassword(CustomUserDetails userDetails, String newPassword) {
         try {
-            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-            User userEntity = userRepository.findById(customUserDetails.getUserId()).get();
+            User userEntity = userRepository.findById(userDetails.getUserId()).get();
             userEntity.setPassword(bCryptPasswordEncoder.encode(newPassword));
             userRepository.save(userEntity);
             return ApiSuccessResponse.response(ResponseCode.Ok, "비밀번호를 성공적으로 수정하였습니다.", null);

@@ -6,11 +6,11 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @SuperBuilder
@@ -37,14 +37,14 @@ public class QnaComment extends BaseTimeEntity {
     @JoinColumn(name="parent_comment_id")
     private QnaComment parentComment;
 
-    @OneToMany(mappedBy = "parentComment")
-    private List<QnaComment> childComments = new ArrayList<>();
+    @OneToMany(mappedBy = "parentComment", fetch = FetchType.LAZY)
+    private List<QnaComment> subComments;
 
     // 부모 댓글 설정 메서드
     public void setParentComment(QnaComment parentComment) {
         this.parentComment = parentComment;
         if (parentComment != null) {
-            parentComment.getChildComments().add(this);
+            parentComment.getSubComments().add(this);
         }
     }
 }

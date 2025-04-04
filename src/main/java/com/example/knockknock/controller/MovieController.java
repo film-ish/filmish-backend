@@ -1,18 +1,15 @@
 package com.example.knockknock.controller;
 
+import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.request.MovieRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.service.MovieService;
 import com.example.knockknock.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -29,9 +26,8 @@ public class MovieController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse likeIndie(@RequestBody MovieRequest.LikeIndie request,
-                                 Authentication authentication) {
-        return movieService.likeIndie(request, authentication);
+    public ApiResponse likeIndie(@RequestBody MovieRequest.LikeIndie request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return movieService.likeIndie(request, userDetails);
     }
 
     @DeleteMapping("/likes/{likeId}")
@@ -49,7 +45,7 @@ public class MovieController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
     public ApiResponse movieInfo(@PathVariable Long movieId){
-        return movieService.movieInfo(movieId);
+        return movieService.movieDetail(movieId);
     }
 
     @GetMapping("{movieId}/reviews")
@@ -61,6 +57,33 @@ public class MovieController {
                                   @RequestParam(name = "page") int pageNum,
                                   @RequestParam(name = "size") int pageSize){
         return reviewService.reviewList(movieId, pageNum, pageSize);
+    }
+
+    @GetMapping("/like-commercial")
+    @Operation(summary = "상업 영화 목록 조회", description = "상업 영화 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
+    })
+    public ApiResponse listCommercial(){
+        return movieService.listCommercial();
+    }
+
+    @PostMapping("/like-commercial")
+    @Operation(summary = "상업 영화 좋아요 등록", description = "상업 영화 좋아요를 등록합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
+    })
+    public ApiResponse likeCommercial(@RequestBody MovieRequest.LikeCommercial request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return movieService.likeCommercial(request, userDetails);
+    }
+
+    @GetMapping("/genre/{genreId}")
+    @Operation(summary = "장르별 전체 영화 목록 조회", description = "장르별 전체 영화 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
+    })
+    public ApiResponse genreMovies(@PathVariable Long genreId) {
+        return movieService.genreMovies(genreId);
     }
 
 }

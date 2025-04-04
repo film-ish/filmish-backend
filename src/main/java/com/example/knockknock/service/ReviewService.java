@@ -7,6 +7,7 @@ import com.example.knockknock.entity.*;
 import com.example.knockknock.error.code.ErrorCode;
 import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.repository.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,6 +34,8 @@ public class ReviewService {
     private final ReviewImageRepository reviewImageRepository;
     private final IndieMovieRepository indieMovieRepository;
     private final ReviewCommentRepository reviewCommentRepository;
+    private final MakerMovieRepository makerMovieRepository;
+
     private final S3Service s3Service;
 
     @Value("${spring.cloud.aws.s3.bucket}")
@@ -62,9 +64,10 @@ public class ReviewService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
     }
     
-    public ApiResponse writeReview(ReviewRequest.Write request, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse writeReview(ReviewRequest.Create request, CustomUserDetails userDetails){
         Long userId = userDetails.getUserId();
+        log.info("입력된 userId = " + userId);
+        log.info("입력된 indieId = " + request.getIndieId());
         User user = userRepository.findById(userId).get();
         IndieMovie indieMovie = indieMovieRepository.findById(request.getIndieId()).get();
 
@@ -120,12 +123,12 @@ public class ReviewService {
         }
     }
 
-    public ApiResponse updateReview(ReviewRequest.Update request, Long reviewId){
+    public ApiResponse updateReview(ReviewRequest.Update request, Long reviewId, CustomUserDetails userDetails){
         Review review = reviewRepository.findById(reviewId).get();
         log.info("review = " + review.getTitle());
 
-        if(review.getDeletedAt() != null){
-            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미 삭제된 게시물입니다.");
+        if (review.getUser().getId() != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "수정 권한이 없습니다.");
         }
         review.setTitle(request.getTitle());
         log.info("title = " + request.getTitle());
@@ -138,14 +141,15 @@ public class ReviewService {
     }
 
     public ApiResponse detailReview(Long reviewId){
-        log.info("입력된 reviewId = " + reviewId);
         Optional<Review> selectReview = reviewRepository.findById(reviewId);
         Review savedReview = null;
-        if(!selectReview.isEmpty()) {
-            Review review = selectReview.get();
-            review.setViews(review.getViews() + 1);
-            savedReview = reviewRepository.save(review);
+        if(selectReview.isEmpty()){
+            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "존재하지 않는 게시물입니다.");
         }
+
+        Review review = selectReview.get();
+        review.setViews(review.getViews() + 1);
+        savedReview = reviewRepository.save(review);
 
         List<ReviewImageResponse.Detail> images = null;
         Optional<List<ReviewImage>> imageList = reviewImageRepository.findByReviewId(reviewId);
@@ -163,28 +167,32 @@ public class ReviewService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 리뷰를 성공적으로 조회했습니다.", reviewResponse);
     }
 
-    public ApiResponse deleteReview(Long reviewId){
+    public ApiResponse deleteReview(Long reviewId, CustomUserDetails userDetails){
         Review review = reviewRepository.findById(reviewId).get();
-        if (review.isSoftDeleted()) {
-            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미 삭제된 리뷰입니다.");
+
+        if(userDetails.getUserId() != review.getUser().getId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "삭제 권한이 없습니다.");
         }
+
         review.deleteSoftly(Instant.now());
         reviewRepository.save(review);
-        return ApiSuccessResponse.response(ResponseCode.Ok, "영화 리뷰를 성공적으로 삭제했습니다.", null);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "게시물이 삭제되었습니다.", null);
     }
 
-    public ApiResponse writeComment(ReviewRequest.WriteComment request, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
+    @Transactional
+    public ApiResponse writeComment(ReviewRequest.CreateComment request, CustomUserDetails userDetails){
         User writer = userRepository.findById(userDetails.getUserId()).get();
-        Review review = reviewRepository.findById(request.getReviewId()).get();
+        Optional<Review> review = reviewRepository.findById(request.getReviewId());
+        if(review.isEmpty()){
+            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "존재하지 않는 게시물입니다.");
+        }
 
         // ParentId가 null인 경우 (댓글)
         if (request.getParentId() == null) {
             ReviewComment newComment = ReviewComment.builder()
                     .content(request.getContent())
                     .user(writer)
-                    .review(review)
+                    .review(review.get())
                     .createdAt(Instant.now())
                     .parentComment(null)
                     .build();
@@ -195,7 +203,7 @@ public class ReviewService {
             ReviewComment newComment = ReviewComment.builder()
                     .content(request.getContent())
                     .user(writer)
-                    .review(review)
+                    .review(review.get())
                     .createdAt(Instant.now())
                     .parentComment(parentComment)
                     .build();
@@ -204,8 +212,7 @@ public class ReviewService {
         }
     }
 
-    public ApiResponse updateComment(ReviewRequest.UpdateComment request, Long commentId, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse updateComment(ReviewRequest.UpdateComment request, Long commentId, CustomUserDetails userDetails){
         ReviewComment reviewComment = reviewCommentRepository.findById(commentId).get();
 
         if(userDetails.getUserId() != reviewComment.getUser().getId()){
@@ -222,8 +229,7 @@ public class ReviewService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "댓글이 성공적으로 수정되었습니다.", null);
     }
 
-    public ApiResponse deleteComment(Long commentId, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse deleteComment(Long commentId, CustomUserDetails userDetails){
         ReviewComment reviewComment = reviewCommentRepository.findById(commentId).get();
 
         if(userDetails.getUserId() != reviewComment.getUser().getId()){
@@ -233,5 +239,42 @@ public class ReviewService {
         reviewComment.deleteSoftly(Instant.now());
         reviewCommentRepository.save(reviewComment);
         return ApiSuccessResponse.response(ResponseCode.Ok, "댓글이 성공적으로 삭제되었습니다.", null);
+    }
+
+    public ApiResponse listComment(Long reviewId, int pageNum, int pageSize){
+        Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Direction.ASC, "createdAt"));
+        Long indieId = reviewRepository.findById(reviewId).get().getIndieMovie().getId();
+        Page<ReviewCommentResponse.Detail> commentList = reviewCommentRepository.findByReviewId(reviewId, pageable)
+                .map(reviewComment -> {
+                    if(reviewComment.getParentComment() != null) return null;    // null이 아니라 pass 했으면 좋겠음
+                    User writer = reviewComment.getUser();
+                    Optional<MakerMovie> makerMovie = makerMovieRepository.findByMakerIdAndUserId(writer.getId(), indieId);
+                    MakerMovie makerMovie1 = null;
+                    if(!makerMovie.isEmpty()) {
+                        makerMovie1 = makerMovie.get();
+                    }
+
+                    List<ReviewComment> subList = null;
+                    List<ReviewCommentResponse.Detail> subCommentList = null;
+                    Optional<List<ReviewComment>> subComments = reviewCommentRepository.findByParentCommentId(reviewComment.getId());
+                    if(!subComments.isEmpty()){
+                        subList = subComments.get();
+                        subCommentList = subList.stream()
+                                .map(subComment -> {
+                                    User subCommentWriter = subComment.getUser();
+                                    Optional<MakerMovie> subMakerMovie = makerMovieRepository
+                                            .findByMakerIdAndUserId(subCommentWriter.getId(), indieId);
+
+                                    return ReviewCommentResponse.Detail.of(
+                                            subComment,
+                                            subCommentWriter,
+                                            subMakerMovie.orElse(null),
+                                            null
+                                    );
+                                }).toList();
+                    }
+                    return ReviewCommentResponse.Detail.of(reviewComment, writer, makerMovie1, subCommentList);
+                });
+        return ApiSuccessResponse.response(ResponseCode.Ok, "댓글 목록을 성공적으로 조회하였습니다.", commentList);
     }
 }

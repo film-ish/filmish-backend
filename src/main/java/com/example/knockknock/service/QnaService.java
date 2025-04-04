@@ -1,0 +1,174 @@
+package com.example.knockknock.service;
+
+import com.example.knockknock.controller.request.CustomUserDetails;
+import com.example.knockknock.controller.request.QnaRequest;
+import com.example.knockknock.controller.response.*;
+import com.example.knockknock.entity.Maker;
+import com.example.knockknock.entity.Qna;
+import com.example.knockknock.entity.QnaComment;
+import com.example.knockknock.entity.User;
+import com.example.knockknock.error.code.ErrorCode;
+import com.example.knockknock.error.response.ApiErrorResponse;
+import com.example.knockknock.repository.MakerRepository;
+import com.example.knockknock.repository.QnaCommentRepository;
+import com.example.knockknock.repository.QnaRepository;
+import com.example.knockknock.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class QnaService {
+    private final UserRepository userRepository;
+    private final MakerRepository makerRepository;
+    private final QnaRepository qnaRepository;
+    private final QnaCommentRepository qnaCommentRepository;
+
+    public ApiResponse writeQna(QnaRequest.Create request, CustomUserDetails userDetails){
+        Long userId = userDetails.getUserId();
+        User writer = userRepository.findById(userId).get();
+        Maker maker = makerRepository.findById(request.getMakerId()).get();
+
+        Qna newQna = Qna.builder()
+                .title(request.getTitle())
+                .content(request.getContent())
+                .createdAt(Instant.now())
+                .maker(maker)
+                .user(writer)
+                .build();
+
+        qnaRepository.save(newQna);
+        return ApiSuccessResponse.response(ResponseCode.Created, "QnA가 성공적으로 등록되었습니다.", null);
+    }
+
+    public ApiResponse updateQna(Long qnaId, QnaRequest.Update request, CustomUserDetails userDetails){
+        Qna qna = qnaRepository.findById(qnaId).get();
+
+        if (qna.getUser().getId() != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "수정 권한이 없습니다.");
+        }
+
+        qna.setTitle(request.getTitle());
+        qna.setContent(request.getContent());
+        qna.setUpdatedAt(Instant.now());
+
+        qnaRepository.save(qna);
+
+        return ApiSuccessResponse.response(ResponseCode.Ok, "게시물 수정이 완료되었습니다.", null);
+    }
+
+    public ApiResponse deleteQna(Long qnaId, CustomUserDetails userDetails){
+        Qna qna = qnaRepository.findById(qnaId).get();
+
+        if(qna.getUser().getId() != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "권한이 없습니다.");
+        }
+
+        qna.deleteSoftly(Instant.now());
+        qnaRepository.save(qna);
+
+        return ApiSuccessResponse.response(ResponseCode.Ok, "게시물이 삭제되었습니다.", null);
+    }
+
+    public ApiResponse listQna(Long makerId, int pageNum, int pageSize){
+        Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<QnaResponse.Detail> qnaPage = qnaRepository.findByMakerId(makerId, pageable)
+                .map(qna -> {
+                    User writer = qna.getUser();
+                    List<QnaComment> qnaCommentList = null;
+                    List<QnaCommentResponse.Detail> qnaComments = null;
+                    Optional<List<QnaComment>> commentList = qnaCommentRepository.findByQnaId(qna.getId());
+                    if(!commentList.isEmpty()){
+                        qnaCommentList = commentList.get();
+                    }
+                    qnaComments = qnaCommentList.stream()
+                            .map(qnaComment -> {
+                                User commentWriter = qnaComment.getUser();
+                                Optional<List<QnaComment>> subComments = qnaCommentRepository
+                                        .findByParentCommentId(qnaComment.getId());
+
+                                List<QnaComment> subList = null;
+                                List<QnaCommentResponse.Detail> subCommentList = null;
+                                if(!subComments.isEmpty()) {
+                                    subList = subComments.get();
+                                    subCommentList = subList.stream()
+                                            .map(subComment -> {
+                                                User subCommentWriter = subComment.getUser();
+                                                return QnaCommentResponse.Detail.of(
+                                                        subComment,
+                                                        subCommentWriter,
+                                                        null
+                                                );
+                                            }).toList();
+                                }
+                                return QnaCommentResponse.Detail.of(qnaComment, commentWriter, subCommentList);
+                            }).toList();
+                    return QnaResponse.Detail.of(qna, writer,qnaComments);
+                });
+        return ApiSuccessResponse.response(ResponseCode.Ok, "목록이 성공적으로 조회되었습니다.", qnaPage);
+    }
+
+    @Transactional
+    public ApiResponse writeComment(Long qnaId, QnaRequest.CreateComment request,
+                                    CustomUserDetails userDetails){
+        User writer = userRepository.findById(userDetails.getUserId()).get();
+        QnaComment parentComment = null;
+        Optional<Qna> qna = qnaRepository.findByIdWithLock(qnaId);
+        if(qna.isEmpty()){
+            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "존재하지 않는 게시물입니다.");
+        }
+
+        if (request.getParentId() != null) {
+            parentComment = qnaCommentRepository.findById(request.getParentId()).get();
+        }
+
+        QnaComment qnaComment = QnaComment.builder()
+                .content(request.getContent())
+                .user(writer)
+                .qna(qna.get())
+                .parentComment(parentComment)
+                .createdAt(Instant.now())
+                .build();
+
+        qnaCommentRepository.save(qnaComment);
+
+        return ApiSuccessResponse.response(ResponseCode.Created, "댓글이 성공적으로 등록되었습니다.", null);
+    }
+
+    public ApiResponse updateComment(Long commentId, QnaRequest.UpdateComment request, CustomUserDetails userDetails){
+        QnaComment comment = qnaCommentRepository.findById(commentId).get();
+
+        if(comment.getUser().getId() != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "수정 권한이 없습니다.");
+        }
+
+        comment.setContent(request.getContent());
+        comment.setUpdatedAt(Instant.now());
+        qnaCommentRepository.save(comment);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "수정이 완료되었습니다.", null);
+    }
+
+    public ApiResponse deleteComment(Long commentId, CustomUserDetails userDetails){
+        QnaComment comment = qnaCommentRepository.findById(commentId).get();
+
+        if(comment.getUser().getId() != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "삭제 권한이 없습니다.");
+        }
+
+        comment.deleteSoftly(Instant.now());
+        qnaCommentRepository.save(comment);
+
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 삭제되었습니다.", null);
+    }
+}

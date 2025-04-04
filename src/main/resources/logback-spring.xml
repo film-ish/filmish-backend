@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <!-- 컨테이너 환경에 맞는 로그 경로 설정 -->
+  <property name="LOG_PATH" value="/var/log/springboot"/>
+
+  <!-- 콘솔 출력 설정 -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+      <charset>utf8</charset>
+    </encoder>
+  </appender>
+
+  <!-- JSON 파일 출력 설정 -->
+  <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_PATH}/knockknock-backend.json</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_PATH}/knockknock-backend.json.%d{yyyy-MM-dd}</fileNamePattern>
+      <maxHistory>7</maxHistory>
+      <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <includeMdc>true</includeMdc>
+      <includeContext>true</includeContext>
+      <customFields>{"application":"knockknock-backend","environment":"${SPRING_PROFILES_ACTIVE:-prod}","container_id":"${HOSTNAME}"}</customFields>
+    </encoder>
+  </appender>
+
+  <!-- 로그 레벨 설정 -->
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="JSON_FILE"/>
+  </root>
+
+  <!-- 특정 패키지 로그 레벨 설정 -->
+  <logger name="org.springframework" level="INFO"/>
+  <logger name="org.hibernate" level="INFO"/>
+  <!-- 본인 애플리케이션 패키지 로그 레벨 -->
+  <logger name="com.knockknock" level="DEBUG"/>
+</configuration>
