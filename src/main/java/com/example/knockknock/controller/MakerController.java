@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,13 +21,20 @@ public class MakerController {
     private final MakerService makerService;
 
     @GetMapping("")
-    @Operation(summary = "영화인 목록 조회", description = "영화인 목록을 조회합니다.")
+    @Operation(summary = "영화인 목록 조회 및 검색", description = "영화인의 목록을 조회하거나 이름을 검색합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse makerList(@RequestParam(name = "page") int pageNum,
-                                @RequestParam(name = "size") int pageSize){
-        return makerService.makerList(pageNum, pageSize);
+    public ApiResponse makerListOrSearch(
+            @RequestParam(name = "page", defaultValue = "0") int pageNum,
+            @RequestParam(name = "size", defaultValue = "10") int pageSize,
+            @RequestParam(name = "name", required = false) String name) {
+
+        if (name != null && !name.isEmpty()) {
+            return makerService.searchMaker(name);
+        } else {
+            return makerService.makerList(pageNum, pageSize);
+        }
     }
 
     @GetMapping("/{makerId}")
@@ -46,4 +54,5 @@ public class MakerController {
     public ApiResponse updateMaker(@PathVariable Long makerId, @RequestBody MakerRequest.Update request){
         return makerService.updateMaker(request, makerId);
     }
+
 }

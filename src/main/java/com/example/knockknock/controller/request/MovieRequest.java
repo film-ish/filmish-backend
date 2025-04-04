@@ -12,6 +12,4 @@ public class MovieRequest {
     public static class LikeIndie {
         private Long indieId;
     }
-
-
 }

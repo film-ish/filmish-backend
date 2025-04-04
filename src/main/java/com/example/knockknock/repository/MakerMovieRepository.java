@@ -2,6 +2,7 @@ package com.example.knockknock.repository;
 
 import com.example.knockknock.entity.IndieMovie;
 import com.example.knockknock.entity.MakerMovie;
+import com.example.knockknock.entity.Type;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,7 @@ public interface MakerMovieRepository extends JpaRepository<MakerMovie, Long> {
 
     @Query("SELECT m FROM MakerMovie m WHERE m.maker.id = :makerId")
     List<MakerMovie> findAllByMakerId(@Param("makerId") Long makerId);
+
+    @Query("SELECT mm FROM MakerMovie mm WHERE mm.maker.name LIKE %:name% AND mm.type = :type")
+    List<MakerMovie> findByMakerNameContainingAndType(@Param("name") String name, @Param("type") Type type);
 }
