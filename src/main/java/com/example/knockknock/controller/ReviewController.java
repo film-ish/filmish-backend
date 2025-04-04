@@ -1,5 +1,6 @@
 package com.example.knockknock.controller;
 
+import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.request.ReviewRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.service.ReviewService;
@@ -8,7 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,8 +24,8 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse writeReview(@ModelAttribute ReviewRequest.Create request, Authentication authentication){
-        return reviewService.writeReview(request, authentication);
+    public ApiResponse writeReview(@ModelAttribute ReviewRequest.Create request, @AuthenticationPrincipal CustomUserDetails userDetails){
+        return reviewService.writeReview(request, userDetails);
     }
 
     @PutMapping("/{reviewId}")
@@ -33,8 +34,8 @@ public class ReviewController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
     })
     public ApiResponse updateReview(@PathVariable Long reviewId, @RequestBody ReviewRequest.Update request,
-                                    Authentication authentication){
-        return reviewService.updateReview(request, reviewId, authentication);
+                                    @AuthenticationPrincipal CustomUserDetails userDetails){
+        return reviewService.updateReview(request, reviewId, userDetails);
     }
 
     @GetMapping("/{reviewId}")
@@ -51,8 +52,8 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 삭제함")
     })
-    public ApiResponse deleteReview(@PathVariable Long reviewId, Authentication authentication){
-        return reviewService.deleteReview(reviewId, authentication);
+    public ApiResponse deleteReview(@PathVariable Long reviewId, @AuthenticationPrincipal CustomUserDetails userDetails){
+        return reviewService.deleteReview(reviewId, userDetails);
     }
 
     @PostMapping("/comments")
@@ -60,8 +61,8 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse writeComment(@RequestBody ReviewRequest.CreateComment request, Authentication authentication){
-        return reviewService.writeComment(request, authentication);
+    public ApiResponse writeComment(@RequestBody ReviewRequest.CreateComment request, @AuthenticationPrincipal CustomUserDetails userDetails){
+        return reviewService.writeComment(request, userDetails);
     }
 
     @PutMapping("/comments/{commentId}")
@@ -70,8 +71,8 @@ public class ReviewController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함")
     })
     public ApiResponse updateComment(@PathVariable Long commentId, @RequestBody ReviewRequest.UpdateComment request,
-                                     Authentication authentication){
-        return reviewService.updateComment(request, commentId, authentication);
+                                     @AuthenticationPrincipal CustomUserDetails userDetails){
+        return reviewService.updateComment(request, commentId, userDetails);
     }
 
     @DeleteMapping("/comments/{commentId}")
@@ -79,8 +80,8 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 삭제함")
     })
-    public ApiResponse deleteComment(@PathVariable Long commentId, Authentication authentication){
-        return reviewService.deleteComment(commentId, authentication);
+    public ApiResponse deleteComment(@PathVariable Long commentId, @AuthenticationPrincipal CustomUserDetails userDetails){
+        return reviewService.deleteComment(commentId, userDetails);
     }
 
     @GetMapping("/{reviewId}/comments")

@@ -52,3 +52,6 @@ image:
 springdoc:
   show-login-endpoint: true
   use-fqn: true
+
+fastapi:
+  url: http://192.168.100.197:8000/woorecommendations/recommendations

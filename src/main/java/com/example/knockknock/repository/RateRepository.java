@@ -1,18 +1,20 @@
 package com.example.knockknock.repository;
 
-import com.example.knockknock.entity.Review;
+import com.example.knockknock.entity.Rate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ReviewRepository extends JpaRepository<Review, Long> {
-    @Query(value = "SELECT r FROM Review r WHERE r.indieMovie.id = :indieId",
-            countQuery = "SELECT COUNT(r) FROM Review r WHERE r.indieMovie.id = :indieId")
-    Page<Review> findByIndieId(@Param("indieId") Long indieId, Pageable pageable);
+import java.util.List;
+import java.util.Optional;
 
+public interface RateRepository extends JpaRepository<Rate, Long> {
     @Query(value = "SELECT r FROM Review r WHERE r.user.id = :userId",
             countQuery = "SELECT COUNT(r) FROM Review r WHERE r.user.id = :userId")
-    Page<Review> findByUserId(@Param("userId") Long userId, Pageable pageable);
+    Page<Rate> findByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT r FROM Rate r WHERE r.indieMovie.id = :indieId")
+    Optional<List<Rate>> findByIndieId(Long indieId);
 }
