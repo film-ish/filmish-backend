@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface QnaRepository extends JpaRepository<Qna, Long> {
+    Long countByMakerId(Long makerId);
     @Query(value = "SELECT q FROM Qna q WHERE q.maker.id = :makerId",
             countQuery = "SELECT COUNT(q) FROM Qna q WHERE q.maker.id = :makerId")
     Page<Qna> findByMakerId(@Param("makerId") Long makerId, Pageable pageable);

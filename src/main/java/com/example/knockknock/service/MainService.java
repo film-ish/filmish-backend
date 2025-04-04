@@ -68,7 +68,7 @@ public class MainService {
         List<IndieResponse.Approximate> orderByDate = latest.stream()
                 .map(indieMovie -> {
                     // 평점 계산
-                    List<Rate> rates = rateRepository.findByIndieId(indieMovie.getId())
+                    List<Rate> rates = rateRepository.findAllByIndieId(indieMovie.getId())
                             .orElse(Collections.emptyList());
 
                     float average = (float) rates.stream()

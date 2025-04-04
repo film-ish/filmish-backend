@@ -48,7 +48,7 @@ public class MypageService {
                     String posterUrl = posters.isEmpty() ? null : posters.get(0).getPoster();
 
                     // 평점 계산
-                    List<Rate> rates = rateRepository.findByIndieId(movieId)
+                    List<Rate> rates = rateRepository.findAllByIndieId(movieId)
                             .orElse(Collections.emptyList());
 
                     float average = (float) rates.stream()
