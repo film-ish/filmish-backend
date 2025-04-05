@@ -54,7 +54,7 @@ springdoc:
   use-fqn: true
 
 fastapi:
-  url: /algorithmm/v1/woorecommendations/recommendations
+  url: /algorithm/v1/woorecommendations/recommendations
 
 server:
   servlet:
