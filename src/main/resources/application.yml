@@ -54,7 +54,7 @@ springdoc:
   use-fqn: true
 
 fastapi:
-  url: http://192.168.100.197:8000/woorecommendations/recommendations
+  url: /algorithmm/v1/woorecommendations/recommendations
 
 server:
   servlet:
