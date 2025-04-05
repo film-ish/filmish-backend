@@ -17,7 +17,7 @@ public class QnaCommentResponse {
         private String writer;
         private String writerImage;
         private String content;
-        private List<Detail> comments;
+        private List<Detail> subComments;
 
         public static Detail of(QnaComment qnaComment,
                                 User writer, List<Detail> comments){
@@ -26,7 +26,7 @@ public class QnaCommentResponse {
                     .writer(writer.getNickname())
                     .writerImage(writer.getHeadImage())
                     .content(qnaComment.getContent())
-                    .comments(comments)
+                    .subComments(comments)
                     .build();
         }
     }

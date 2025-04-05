@@ -20,7 +20,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -36,8 +35,7 @@ public class QnaService {
     private final QnaRepository qnaRepository;
     private final QnaCommentRepository qnaCommentRepository;
 
-    public ApiResponse writeQna(QnaRequest.Create request, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse writeQna(QnaRequest.Create request, CustomUserDetails userDetails){
         Long userId = userDetails.getUserId();
         User writer = userRepository.findById(userId).get();
         Maker maker = makerRepository.findById(request.getMakerId()).get();
@@ -54,8 +52,7 @@ public class QnaService {
         return ApiSuccessResponse.response(ResponseCode.Created, "QnA가 성공적으로 등록되었습니다.", null);
     }
 
-    public ApiResponse updateQna(Long qnaId, QnaRequest.Update request, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse updateQna(Long qnaId, QnaRequest.Update request, CustomUserDetails userDetails){
         Qna qna = qnaRepository.findById(qnaId).get();
 
         if (qna.getUser().getId() != userDetails.getUserId()){
@@ -71,8 +68,7 @@ public class QnaService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "게시물 수정이 완료되었습니다.", null);
     }
 
-    public ApiResponse deleteQna(Long qnaId, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse deleteQna(Long qnaId, CustomUserDetails userDetails){
         Qna qna = qnaRepository.findById(qnaId).get();
 
         if(qna.getUser().getId() != userDetails.getUserId()){
@@ -125,19 +121,23 @@ public class QnaService {
 
     @Transactional
     public ApiResponse writeComment(Long qnaId, QnaRequest.CreateComment request,
-                                    Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+                                    CustomUserDetails userDetails){
         User writer = userRepository.findById(userDetails.getUserId()).get();
-
+        QnaComment parentComment = null;
         Optional<Qna> qna = qnaRepository.findByIdWithLock(qnaId);
         if(qna.isEmpty()){
             return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "존재하지 않는 게시물입니다.");
+        }
+
+        if (request.getParentId() != null) {
+            parentComment = qnaCommentRepository.findById(request.getParentId()).get();
         }
 
         QnaComment qnaComment = QnaComment.builder()
                 .content(request.getContent())
                 .user(writer)
                 .qna(qna.get())
+                .parentComment(parentComment)
                 .createdAt(Instant.now())
                 .build();
 
@@ -146,11 +146,10 @@ public class QnaService {
         return ApiSuccessResponse.response(ResponseCode.Created, "댓글이 성공적으로 등록되었습니다.", null);
     }
 
-    public ApiResponse updateComment(Long commentId, QnaRequest.UpdateComment request, Authentication authentication){
-        CustomUserDetails userDetail = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse updateComment(Long commentId, QnaRequest.UpdateComment request, CustomUserDetails userDetails){
         QnaComment comment = qnaCommentRepository.findById(commentId).get();
 
-        if(comment.getUser().getId() != userDetail.getUserId()){
+        if(comment.getUser().getId() != userDetails.getUserId()){
             return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "수정 권한이 없습니다.");
         }
 
@@ -160,11 +159,10 @@ public class QnaService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "수정이 완료되었습니다.", null);
     }
 
-    public ApiResponse deleteComment(Long commentId, Authentication authentication){
-        CustomUserDetails userDetail = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse deleteComment(Long commentId, CustomUserDetails userDetails){
         QnaComment comment = qnaCommentRepository.findById(commentId).get();
 
-        if(comment.getUser().getId() != userDetail.getUserId()){
+        if(comment.getUser().getId() != userDetails.getUserId()){
             return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "삭제 권한이 없습니다.");
         }
 

@@ -2,12 +2,14 @@ package com.example.knockknock.controller.request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public class ReviewRequest {
     @Getter
+    @Setter
     public static class Create {
         private Long indieId;
         private String title;

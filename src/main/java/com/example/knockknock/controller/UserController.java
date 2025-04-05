@@ -1,5 +1,6 @@
 package com.example.knockknock.controller;
 
+import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.request.UserRequest;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.service.UserService;
@@ -10,7 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -84,9 +85,9 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "비밀번호 수정 완료"),
     })
     public ApiResponse modifyPassword(@RequestBody UserRequest.ModifyPassword ModifyPassword,
-                                      Authentication authentication){
+                                      @AuthenticationPrincipal CustomUserDetails userDetails){
 
         String newPassword = ModifyPassword.getNewPassword();
-        return userService.modifyPassword(authentication, newPassword);
+        return userService.modifyPassword(userDetails, newPassword);
     }
 }

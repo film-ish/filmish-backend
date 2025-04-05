@@ -15,7 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -65,9 +64,10 @@ public class ReviewService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
     }
     
-    public ApiResponse writeReview(ReviewRequest.Create request, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse writeReview(ReviewRequest.Create request, CustomUserDetails userDetails){
         Long userId = userDetails.getUserId();
+        log.info("입력된 userId = " + userId);
+        log.info("입력된 indieId = " + request.getIndieId());
         User user = userRepository.findById(userId).get();
         IndieMovie indieMovie = indieMovieRepository.findById(request.getIndieId()).get();
 
@@ -123,8 +123,7 @@ public class ReviewService {
         }
     }
 
-    public ApiResponse updateReview(ReviewRequest.Update request, Long reviewId, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse updateReview(ReviewRequest.Update request, Long reviewId, CustomUserDetails userDetails){
         Review review = reviewRepository.findById(reviewId).get();
         log.info("review = " + review.getTitle());
 
@@ -142,14 +141,15 @@ public class ReviewService {
     }
 
     public ApiResponse detailReview(Long reviewId){
-        log.info("입력된 reviewId = " + reviewId);
         Optional<Review> selectReview = reviewRepository.findById(reviewId);
         Review savedReview = null;
-        if(!selectReview.isEmpty()) {
-            Review review = selectReview.get();
-            review.setViews(review.getViews() + 1);
-            savedReview = reviewRepository.save(review);
+        if(selectReview.isEmpty()){
+            return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "존재하지 않는 게시물입니다.");
         }
+
+        Review review = selectReview.get();
+        review.setViews(review.getViews() + 1);
+        savedReview = reviewRepository.save(review);
 
         List<ReviewImageResponse.Detail> images = null;
         Optional<List<ReviewImage>> imageList = reviewImageRepository.findByReviewId(reviewId);
@@ -167,8 +167,7 @@ public class ReviewService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 리뷰를 성공적으로 조회했습니다.", reviewResponse);
     }
 
-    public ApiResponse deleteReview(Long reviewId, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse deleteReview(Long reviewId, CustomUserDetails userDetails){
         Review review = reviewRepository.findById(reviewId).get();
 
         if(userDetails.getUserId() != review.getUser().getId()){
@@ -181,9 +180,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public ApiResponse writeComment(ReviewRequest.CreateComment request, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
+    public ApiResponse writeComment(ReviewRequest.CreateComment request, CustomUserDetails userDetails){
         User writer = userRepository.findById(userDetails.getUserId()).get();
         Optional<Review> review = reviewRepository.findById(request.getReviewId());
         if(review.isEmpty()){
@@ -215,8 +212,7 @@ public class ReviewService {
         }
     }
 
-    public ApiResponse updateComment(ReviewRequest.UpdateComment request, Long commentId, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse updateComment(ReviewRequest.UpdateComment request, Long commentId, CustomUserDetails userDetails){
         ReviewComment reviewComment = reviewCommentRepository.findById(commentId).get();
 
         if(userDetails.getUserId() != reviewComment.getUser().getId()){
@@ -233,8 +229,7 @@ public class ReviewService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "댓글이 성공적으로 수정되었습니다.", null);
     }
 
-    public ApiResponse deleteComment(Long commentId, Authentication authentication){
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ApiResponse deleteComment(Long commentId, CustomUserDetails userDetails){
         ReviewComment reviewComment = reviewCommentRepository.findById(commentId).get();
 
         if(userDetails.getUserId() != reviewComment.getUser().getId()){
