@@ -22,4 +22,7 @@ public interface IndieGenreRepository extends JpaRepository<IndieGenre, Long> {
 
     @Query("SELECT ig FROM IndieGenre ig WHERE ig.genre.id = :genreId")
     Optional<List<IndieGenre>> findByGenreId(Long genreId);
+
+    @Query("SELECT ig FROM IndieGenre ig JOIN FETCH ig.genre WHERE ig.indieMovie.id IN :movieIds")
+    List<IndieGenre> findByIndieMovieIds(@Param("movieIds") List<Long> movieIds);
 }

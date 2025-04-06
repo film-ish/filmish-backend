@@ -69,7 +69,13 @@ public class RateService {
                 .user(user)
                 .createdAt(Instant.now())
                 .build();
+
         rateRepository.save(newRate);
+
+        // 평균 평점 계산 및 업데이트
+        Double newAverage = rateRepository.findAverageRatingByIndieMovieId(request.getIndieId());
+        indieMovie.setAverageRating(newAverage != null ? newAverage.floatValue() : 0.0f);
+        indieMovieRepository.save(indieMovie);
         return ApiSuccessResponse.response(ResponseCode.Created, "평점이 성공적으로 등록되었습니다.", null);
     }
 
@@ -100,6 +106,12 @@ public class RateService {
 
         rateRepository.save(rate);
 
+        // 평균 재계산
+        Double newAverage = rateRepository.findAverageRatingByIndieMovieId(rate.getIndieMovie().getId());
+        IndieMovie indieMovie = rate.getIndieMovie();
+        indieMovie.setAverageRating(newAverage != null ? newAverage.floatValue() : 0.0f);
+        indieMovieRepository.save(indieMovie);
+
         return ApiSuccessResponse.response(ResponseCode.Ok, "평점 수정이 완료되었습니다.", null);
     }
 
@@ -110,6 +122,12 @@ public class RateService {
         }
         rate.deleteSoftly(Instant.now());
         rateRepository.save(rate);
+
+        // 평균 재계산
+        Double newAverage = rateRepository.findAverageRatingByIndieMovieId(rate.getIndieMovie().getId());
+        IndieMovie indieMovie = rate.getIndieMovie();
+        indieMovie.setAverageRating(newAverage != null ? newAverage.floatValue() : 0.0f);
+        indieMovieRepository.save(indieMovie);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 평점을 성공적으로 삭제했습니다.", null);
     }
 
