@@ -31,6 +31,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
     private final TokenBlacklistService tokenBlacklistService;
 
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // 헤더에서 access 키에 담긴 토큰을 꺼냄
@@ -40,7 +41,8 @@ public class JwtFilter extends OncePerRequestFilter {
         // OAuth2 관련 경로는 JWT 검증 건너뛰기
         String requestURI = request.getRequestURI();
         if (requestURI.startsWith("/users/login/social") ||
-                requestURI.startsWith("/login/oauth2/code/")) {
+                requestURI.startsWith("/login/oauth2/code/") ||
+                requestURI.startsWith("/knockknock")) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -23,18 +23,16 @@ public class TokenBlacklistService {
 
     public void addTokenToList(
             String value){
-        redisTemplate.opsForValue().set(
+        redisTemplate.opsForSet().add(
                 REDIS_BLACK_LIST_KEY,
-                value,
-                REDIS_BLACK_LIST_EXPIRE_TIME,
-                TimeUnit.MILLISECONDS
+                value
         );
+
+        redisTemplate.expire(REDIS_BLACK_LIST_KEY, REDIS_BLACK_LIST_EXPIRE_TIME, TimeUnit.MILLISECONDS);
     }
 
     public boolean isContainToken(String value){
-        List<String> allItems = redisTemplate.opsForList().range(REDIS_BLACK_LIST_KEY, 0, -1);
-        return allItems.stream()
-                .anyMatch(item -> item.equals(value));
+        return redisTemplate.opsForSet().isMember(REDIS_BLACK_LIST_KEY, value);
     }
 
     public List<String> getTokenBlackList(){
