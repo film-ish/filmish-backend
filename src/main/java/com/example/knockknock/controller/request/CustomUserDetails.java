@@ -62,15 +62,11 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
         return true;
     }
 
-    //TODO
-    // 이건 무슨 메소드인지 명확히 확인하기
     @Override
     public boolean isCredentialsNonExpired(){
         return true;
     }
 
-    //TODO
-    // NonExpired 메소드랑 어떤 차이?
     @Override
     public boolean isEnabled(){
         return true;

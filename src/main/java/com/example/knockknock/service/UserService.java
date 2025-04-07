@@ -29,6 +29,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class UserService {
         String userEmail = join.getEmail();
         String password = join.getPassword();
         String nickname = join.getNickname();
-        Date birth = join.getBirth();
+        LocalDate birth = join.getBirth();
 
         log.info("joinProcess(), userEmail = " + userEmail);
 

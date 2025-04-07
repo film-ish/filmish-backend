@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -28,7 +29,7 @@ public class User {
     @Column(unique = true, length = 100, nullable = false)
     private String nickname;
 
-    private Date birth;
+    private LocalDate birth;
 
     private String image;
     private String headImage;

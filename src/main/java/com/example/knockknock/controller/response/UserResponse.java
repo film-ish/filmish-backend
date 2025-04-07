@@ -3,6 +3,7 @@ package com.example.knockknock.controller.response;
 import com.example.knockknock.entity.User;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -37,7 +38,7 @@ public class UserResponse {
         private Long id;
         private String nickname;
         private String image;
-        private Date birth;
+        private LocalDate birth;
         private String email;
 
         public static UserInfoResponse of(User user){

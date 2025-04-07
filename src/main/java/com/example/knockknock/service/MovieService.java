@@ -31,10 +31,6 @@ public class MovieService {
     private final LikeCommercialRepository likeCommercialRepository;
     private final IndieGenreRepository indieGenreRepository;
     private final PosterRepository posterRepository;
-    private final ReviewRepository reviewRepository;
-    private final ReviewImageRepository reviewImageRepository;
-    private final S3Service s3Service;
-
 
     public ApiResponse likeIndie(MovieRequest.LikeIndie request, CustomUserDetails customUserDetails){
         Long userId = customUserDetails.getUserId();
@@ -176,5 +172,15 @@ public class MovieService {
                     return IndieResponse.LikeDetail.of(indieMovie, poster, indieMovie.getAverageRating(), genres);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", moviePage);
+    }
+
+    public ApiResponse checkLikeCommercial(CustomUserDetails userDetails){
+        Boolean result = false;
+        Long userId = userDetails.getUserId();
+        Optional<List<LikeCommercial>> likes = likeCommercialRepository.findByUserId(userId);
+        if(likes.isPresent() && !likes.isEmpty()){
+            result = true;
+        }
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", result);
     }
 }
