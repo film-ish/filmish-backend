@@ -42,7 +42,7 @@ public class MovieDocument {
     @Field(type = FieldType.Nested)
     private List<Maker> actors;
 
-    @Field(type = FieldType.Keyword, analyzer = "nori")
+    @Field(type = FieldType.Text, analyzer = "nori")
     private List<String> keywords;
 
     @Field(type = FieldType.Float, index = false)
@@ -54,7 +54,7 @@ public class MovieDocument {
     @AllArgsConstructor
     public static class Maker{
         private String id;
-        @Field(type = FieldType.Keyword, analyzer = "nori")
+        @Field(type = FieldType.Text, analyzer = "nori")
         private String name;
         private String role;
         private Date birth;
