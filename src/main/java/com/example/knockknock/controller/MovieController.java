@@ -99,14 +99,6 @@ public class MovieController {
         return movieService.checkLikeCommercial(userDetails);
     }
 
-    @GetMapping("/like-commercials")
-    @Operation(summary = "상업 영화 좋아요 입력 여부 확인", description = "상업 영화 좋아요 입력 여부를 확인합니다.")
-    @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
-    })
-    public ApiResponse checkLikeCommercial(@AuthenticationPrincipal CustomUserDetails userDetails){
-        return movieService.checkLikeCommercial(userDetails);
-    }
 
     @GetMapping("{movieId}/ratings")
     @Operation(summary = "영화 평점 목록 조회", description = "영화 평점 목록을 조회합니다.")
@@ -114,7 +106,7 @@ public class MovieController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
     public ApiResponse rateList(@PathVariable Long movieId,
-                                @RequestParam(name = "page") int pageNum,
+                                @RequestParam(name =    "page") int pageNum,
                                 @RequestParam(name = "size") int pageSize){
         return rateService.rateList(movieId, pageNum, pageSize);
     }
