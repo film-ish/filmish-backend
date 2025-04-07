@@ -21,4 +21,10 @@ public interface PosterRepository extends JpaRepository<Poster, Long> {
             "WHERE ig.genre.id IN :genreIds " +
             "GROUP BY ig.genre.id ")
     List<Object[]> findFirstPosterByGenreIds(@Param("genreIds") List<Long> genreIds);
+
+    @Query("SELECT p.indieMovie.id AS movieId, p.poster AS posterUrl " +
+            "FROM Poster p " +
+            "WHERE p.id = (SELECT MIN(p2.id) FROM Poster p2 WHERE p2.indieMovie.id = p.indieMovie.id) " + // 각 영화의 첫 번째 포스터 선택
+            "AND p.indieMovie.id IN :movieIds")
+    List<Object[]> findFirstPosterByMovieIds(@Param("movieIds") List<Long> movieIds);
 }

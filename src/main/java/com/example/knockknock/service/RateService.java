@@ -43,7 +43,6 @@ public class RateService {
         Page<RateResponse.Detail> ratePage = rateRepository.findByIndieId(indieId, pageable)
                 .map(rate -> {
                     User writer = rate.getUser();
-
                     return RateResponse.Detail.of(
                             rate,
                             writer.getNickname(),
@@ -62,6 +61,14 @@ public class RateService {
         System.out.println("indieID:" + request.getIndieId());
         IndieMovie indieMovie = indieMovieRepository.findById(request.getIndieId()).get();
 
+        // 이미 등록된 평점이 있는지 확인
+        Optional<Rate> existingRate = rateRepository.findByUserIdAndIndieMovieId(userId, request.getIndieId());
+
+        if (existingRate.isPresent()) {
+            // 이미 평점이 존재하면 오류 응답 반환
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미 해당 영화에 평점을 등록하셨습니다.");
+        }
+
         Rate newRate = Rate.builder()
                 .value(request.getValue())
                 .content(request.getContent())
@@ -69,7 +76,13 @@ public class RateService {
                 .user(user)
                 .createdAt(Instant.now())
                 .build();
+
         rateRepository.save(newRate);
+
+        // 평균 평점 계산 및 업데이트
+        Double newAverage = rateRepository.findAverageRatingByIndieMovieId(request.getIndieId());
+        indieMovie.setAverageRating(newAverage != null ? newAverage.floatValue() : 0.0f);
+        indieMovieRepository.save(indieMovie);
         return ApiSuccessResponse.response(ResponseCode.Created, "평점이 성공적으로 등록되었습니다.", null);
     }
 
@@ -100,6 +113,12 @@ public class RateService {
 
         rateRepository.save(rate);
 
+        // 평균 재계산
+        Double newAverage = rateRepository.findAverageRatingByIndieMovieId(rate.getIndieMovie().getId());
+        IndieMovie indieMovie = rate.getIndieMovie();
+        indieMovie.setAverageRating(newAverage != null ? newAverage.floatValue() : 0.0f);
+        indieMovieRepository.save(indieMovie);
+
         return ApiSuccessResponse.response(ResponseCode.Ok, "평점 수정이 완료되었습니다.", null);
     }
 
@@ -110,6 +129,12 @@ public class RateService {
         }
         rate.deleteSoftly(Instant.now());
         rateRepository.save(rate);
+
+        // 평균 재계산
+        Double newAverage = rateRepository.findAverageRatingByIndieMovieId(rate.getIndieMovie().getId());
+        IndieMovie indieMovie = rate.getIndieMovie();
+        indieMovie.setAverageRating(newAverage != null ? newAverage.floatValue() : 0.0f);
+        indieMovieRepository.save(indieMovie);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 평점을 성공적으로 삭제했습니다.", null);
     }
 
