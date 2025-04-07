@@ -1,9 +1,8 @@
 package com.example.knockknock.controller.request;
 
 import lombok.Getter;
-import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDate;
 import org.springframework.web.multipart.MultipartFile;
 
 public class UserRequest {
@@ -12,9 +11,8 @@ public class UserRequest {
         private String email;
         private String password;
         private String nickname;
-        private Date birth;
+        private LocalDate birth;
         private String image;
-        private String phone;
     }
 
     @Getter

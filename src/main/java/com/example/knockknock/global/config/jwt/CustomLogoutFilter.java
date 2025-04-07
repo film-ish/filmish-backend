@@ -41,7 +41,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
         ObjectMapper objectMapper = new ObjectMapper();
 
         // 로그아웃 관련 URI와 Http Method 설정
-        if (!requestUri.matches("^\\/users/logout$")) {
+        if (!requestUri.matches("^\\/api\\/v1\\/users\\/logout$")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -98,7 +98,9 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
         // blackList 확인
         String access = request.getHeader("access");
+        log.info("access 토큰 : {}", access);
         boolean isBlacked = tokenBlacklistService.isContainToken("BL:AT:" + access);
+        log.info("isBlacked = {}", isBlacked);
         if(isBlacked) {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

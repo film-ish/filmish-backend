@@ -2,6 +2,15 @@ spring:
   application:
     name: KnockKnock
 
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS}
+    username: ${ELASTICSEARCH_USERNAME}
+    password: ${ELASTICSEARCH_PASSWORD}
+    data:
+      elasticsearch:
+        repositories:
+          enabled: true
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -35,7 +44,7 @@ spring:
 
 logging:
   level:
-    org.springframework: INFO
+    org.springframework: DEBUG
 
 image:
   resize:
@@ -54,7 +63,8 @@ springdoc:
   use-fqn: true
 
 fastapi:
-  url: http://localhost:8000/algorithm/v1/woorecommendations/recommendations
+  url: http://algorithm:8000/algorithm/v1/woorecommendations/recommendations
+
 
 server:
   servlet:

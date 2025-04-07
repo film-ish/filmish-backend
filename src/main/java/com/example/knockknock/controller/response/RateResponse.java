@@ -30,6 +30,7 @@ public class RateResponse {
                     .writerName(writer)
                     .writerImage(writerImage)
                     .value(rate.getValue())
+                    .content(rate.getContent())
                     .createdAt(rate.getCreatedAt())
                     .updatedAt(rate.getUpdatedAt())
                     .build();
@@ -44,19 +45,13 @@ public class RateResponse {
         private String title;
         private String posterUrl;
         private float averageRating;
-        private int ratingCount;
-        private String genre;
-        private Date pubdate;
 
-        public static RateResponse.MovieListByRating of(IndieMovie movie, float averageRating, int ratingCount, String posterUrl, String genres) {
+        public static RateResponse.MovieListByRating of(IndieMovie movie, float averageRating, String posterUrl) {
             return MovieListByRating.builder()
                     .movieId(movie.getId())
                     .title(movie.getTitle())
                     .posterUrl(posterUrl)
                     .averageRating(averageRating)
-                    .ratingCount(ratingCount)
-                    .genre(genres)
-                    .pubdate(movie.getPubdate())
                     .build();
         }
     }

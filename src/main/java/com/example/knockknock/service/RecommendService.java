@@ -20,9 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -89,108 +87,123 @@ public class RecommendService {
     }
 
     @Transactional(readOnly = true)
-    public ApiResponse listRate(double minValue, double maxValue, int pageNum, int pageSize, List<Long> recommendedMovieIds) {
-        // 1. 페이지네이션 설정
+    public ApiResponse listRate(double minValue, double maxValue, int pageNum, int pageSize, ApiResponse recommendResult) {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
 
-        // 2. 평균 평점 조회 (영화별)
-        Page<Object[]> movieRatings = rateRepository.findMoviesWithAverageRatingAndRecommendation(
-                minValue,
-                maxValue,
-                recommendedMovieIds,
-                pageable
-        );
+        // 평점 범위에 해당하는 영화 목록 조회
+        Page<Object[]> movieRatings = rateRepository.findMoviesWithAverageRatingBetween(
+                minValue, maxValue, pageable);
 
-        // 3. 영화 ID 추출
+        // 추천 영화 ID 목록 추출
+        List<Long> recommendedMovieIds = extractRecommendedMovieIds(recommendResult);
+
+        // 영화 ID 추출
         List<Long> movieIds = movieRatings.getContent().stream()
                 .map(result -> (Long) result[0])
                 .toList();
 
-        // 4. 포스터 조회 (중복 키 처리)
-        Map<Long, String> moviePosterMap = posterRepository.findFirstPosterByMovieIds(movieIds)
+        // 포스터 조회
+        Map<Long, String> posterMap = fetchPosterMap(movieIds);
+
+        // 영화 정보 변환
+        List<RateResponse.MovieListByRating> responseList = movieRatings.getContent().stream()
+                .map(result -> {
+                    Long movieId = (Long) result[0];
+                    float rating = ((Number) result[1]).floatValue();
+
+                    // 영화 정보 조회 - 없으면 null 반환
+                    Optional<IndieMovie> movieOpt = indieMovieRepository.findById(movieId);
+                    if (movieOpt.isEmpty()) {
+                        log.error("영화를 찾을 수 없습니다: {}", movieId);
+                        return null;
+                    }
+
+                    String posterUrl = posterMap.getOrDefault(movieId, "default_poster.jpg");
+
+                    return RateResponse.MovieListByRating.builder()
+                            .movieId(movieId)
+                            .title(movieOpt.get().getTitle())
+                            .posterUrl(posterUrl)
+                            .averageRating(rating)
+                            .build();
+                })
+                .filter(Objects::nonNull) // null 값 필터링
+                .collect(Collectors.toList());
+
+        // 추천 영화 우선 정렬
+        sortByRecommendation(responseList, recommendedMovieIds);
+
+        // 페이지 객체 생성
+        Page<RateResponse.MovieListByRating> resultPage = new PageImpl<>(
+                responseList, pageable, responseList.size());
+
+        return ApiSuccessResponse.response(
+                ResponseCode.Ok,
+                "평점별 영화 목록을 성공적으로 조회했습니다.",
+                resultPage);
+    }
+
+    private List<Long> extractRecommendedMovieIds(ApiResponse recommendResult) {
+        if (!(recommendResult instanceof ApiSuccessResponse)) {
+            return Collections.emptyList();
+        }
+
+        Object data = ((ApiSuccessResponse) recommendResult).getData();
+        if (!(data instanceof JsonNode)) {
+            return Collections.emptyList();
+        }
+
+        JsonNode jsonNode = (JsonNode) data;
+        JsonNode recommendationsNode = null;
+
+        if (jsonNode.has("recommendations")) {
+            recommendationsNode = jsonNode.get("recommendations");
+        } else if (jsonNode.has("data") && jsonNode.get("data").has("recommendations")) {
+            recommendationsNode = jsonNode.get("data").get("recommendations");
+        }
+
+        if (recommendationsNode == null || !recommendationsNode.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> movieIds = new ArrayList<>();
+        for (JsonNode node : recommendationsNode) {
+            if (node.has("id")) {
+                movieIds.add(node.get("id").asLong());
+            }
+        }
+
+        return movieIds;
+    }
+
+    private Map<Long, String> fetchPosterMap(List<Long> movieIds) {
+        return posterRepository.findFirstPosterByMovieIds(movieIds)
                 .stream()
                 .collect(Collectors.toMap(
                         tuple -> (Long) tuple[0],
                         tuple -> tuple[1] != null ? (String) tuple[1] : "default_poster.jpg",
-                        (existing, replacement) -> existing // 중복 시 기존 값 유지
+                        (existing, replacement) -> existing
                 ));
-
-        // 5. 장르 정보 조회 (일괄 처리)
-        List<IndieGenre> indieGenres = indieGenreRepository.findByIndieMovieIds(movieIds);
-
-        // 영화별 장르 매핑 (예: {276: ["드라마", "뮤지컬"]})
-        Map<Long, List<String>> movieGenresMap = indieGenres.stream()
-                .collect(Collectors.groupingBy(
-                        ig -> ig.getIndieMovie().getId(),
-                        Collectors.mapping(ig -> ig.getGenre().getName(), Collectors.toList())
-                ));
-
-        // 6. 응답 데이터 변환 (MovieListByRating 사용)
-        List<RateResponse.MovieListByRating> responseList = movieRatings.getContent().stream()
-                .map(result -> {
-                    Long movieId = (Long) result[0];
-                    double averageRating = (Double) result[1];
-                    int ratingCount = ((Long) result[2]).intValue();
-
-                    IndieMovie movie = indieMovieRepository.findById(movieId).orElseThrow();
-                    String posterUrl = moviePosterMap.getOrDefault(movieId, "default_poster.jpg");
-
-                    // 장르 정보 가져오기
-                    List<String> genres = movieGenresMap.getOrDefault(movieId, Collections.emptyList());
-
-                    return RateResponse.MovieListByRating.builder()
-                            .movieId(movieId)
-                            .title(movie.getTitle())
-                            .posterUrl(posterUrl)
-                            .averageRating((float) averageRating)
-                            .ratingCount(ratingCount)
-                            .genre(String.join(", ", genres)) // 쉼표로 구분된 문자열로 변환
-                            .pubdate(movie.getPubdate())
-                            .build();
-                })
-                .collect(Collectors.toList());
-
-        // 7. 추천 영화 우선 정렬
-        responseList.sort((m1, m2) -> {
-            boolean isRecommended1 = recommendedMovieIds.contains(m1.getMovieId());
-            boolean isRecommended2 = recommendedMovieIds.contains(m2.getMovieId());
-            return Boolean.compare(isRecommended2, isRecommended1); // 추천 영화 먼저
-        });
-
-        // 8. 페이지 객체 생성
-        Page<RateResponse.MovieListByRating> resultPage = new PageImpl<>(
-                responseList.subList(Math.min(pageNum * pageSize, responseList.size()),
-                        Math.min((pageNum + 1) * pageSize, responseList.size())),
-                pageable,
-                responseList.size()
-        );
-
-        return ApiSuccessResponse.response(ResponseCode.Ok, "평점별 영화 목록을 성공적으로 조회했습니다.", resultPage);
     }
 
-
-    public List<Long> getRecommendedMovieIds(Long userId) {
-        // FastAPI 서버에 요청 보내기
-        String response = restTemplate.getForObject(fastApiUrl +
-                "/?user_id=" + userId +
-                "&num_recommendations=10", String.class);
-
-        // JSON 문자열을 JsonNode로 변환
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode recommendMovies;
-        try {
-            recommendMovies = objectMapper.readTree(response); // JSON 파싱
-        } catch (Exception e) {
-            log.error("추천 목록 생성 중 오류가 발생했습니다.", e);
-            throw new RuntimeException("추천 목록 생성 중 오류가 발생하였습니다.");
+    private void sortByRecommendation(List<RateResponse.MovieListByRating> movies, List<Long> recommendedIds) {
+        if (recommendedIds.isEmpty()) {
+            return;
         }
 
-        // 추천 영화 ID 목록 추출
-        List<Long> recommendedMovieIds = recommendMovies.findValues("movieId").stream()
-                .map(JsonNode::asLong)
-                .toList();
+        movies.sort((m1, m2) -> {
+            boolean isRecommended1 = recommendedIds.contains(m1.getMovieId());
+            boolean isRecommended2 = recommendedIds.contains(m2.getMovieId());
 
-        return recommendedMovieIds;
+            if (isRecommended1 == isRecommended2) {
+                if (isRecommended1) {
+                    return Integer.compare(recommendedIds.indexOf(m2.getMovieId()),
+                            recommendedIds.indexOf(m1.getMovieId()));
+                }
+                return 0; // 둘 다 추천 영화가 아니면 순서 유지
+            }
+            return isRecommended2 ? 1 : -1; // 추천 영화 먼저
+        });
     }
 
 

@@ -43,7 +43,6 @@ public class RateService {
         Page<RateResponse.Detail> ratePage = rateRepository.findByIndieId(indieId, pageable)
                 .map(rate -> {
                     User writer = rate.getUser();
-
                     return RateResponse.Detail.of(
                             rate,
                             writer.getNickname(),
@@ -61,6 +60,14 @@ public class RateService {
         User user = userRepository.findById(userId).get();
         System.out.println("indieID:" + request.getIndieId());
         IndieMovie indieMovie = indieMovieRepository.findById(request.getIndieId()).get();
+
+        // 이미 등록된 평점이 있는지 확인
+        Optional<Rate> existingRate = rateRepository.findByUserIdAndIndieMovieId(userId, request.getIndieId());
+
+        if (existingRate.isPresent()) {
+            // 이미 평점이 존재하면 오류 응답 반환
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미 해당 영화에 평점을 등록하셨습니다.");
+        }
 
         Rate newRate = Rate.builder()
                 .value(request.getValue())

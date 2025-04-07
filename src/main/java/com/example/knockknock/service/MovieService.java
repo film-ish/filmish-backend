@@ -9,6 +9,9 @@ import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -28,10 +31,6 @@ public class MovieService {
     private final LikeCommercialRepository likeCommercialRepository;
     private final IndieGenreRepository indieGenreRepository;
     private final PosterRepository posterRepository;
-    private final ReviewRepository reviewRepository;
-    private final ReviewImageRepository reviewImageRepository;
-    private final S3Service s3Service;
-
 
     public ApiResponse likeIndie(MovieRequest.LikeIndie request, CustomUserDetails customUserDetails){
         Long userId = customUserDetails.getUserId();
@@ -120,7 +119,7 @@ public class MovieService {
     public ApiResponse listCommercial(){
         // 랜덤 숫자를 생성, 중복 방지를 위해 Set 사용
         Set<Long> randomIds = new HashSet<>();
-        while (randomIds.size() < 20) {
+        while (randomIds.size() < 24) {
             Long randomNumber = (long) (Math.random() * 226) + 1;
             randomIds.add(randomNumber);
         }
@@ -159,32 +158,29 @@ public class MovieService {
         return ApiSuccessResponse.response(ResponseCode.Created, "보고싶어요 등록이 완료되었습니다.", null);
     }
 
-    public ApiResponse genreMovies(Long genreId){
-        List<IndieResponse.LikeDetail<Float>> genreMovies = null;
-        List<IndieGenre> indieGenres = indieGenreRepository.findByGenreId(genreId).orElse(Collections.emptyList());
-        if(!indieGenres.isEmpty()){
-            genreMovies = indieGenres.stream()
-                    .map(indieGenre -> {
-                        IndieMovie movie = indieGenre.getIndieMovie();
-                        String poster = null;
-                        List<Poster> posters = posterRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
-                        if(!posters.isEmpty()){
-                            poster = posters.get(0).getPoster();
-                        }
+    public ApiResponse genreMovies(Long genreId, int pageNum, int pageSize){
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<IndieResponse.LikeDetail> moviePage = indieMovieRepository.findByGenreId(genreId, pageable)
+                .map(indieMovie -> {
+                    String poster = posterRepository.findByIndieId(indieMovie.getId())
+                            .filter(posterList -> !posterList.isEmpty())
+                            .map(posters -> posters.get(0).getPoster())
+                            .orElse(null);
+                    Optional<List<IndieGenre>> optGenres = indieGenreRepository.findByIndieId(indieMovie.getId());
+                    List<String> genres = optGenres.isPresent() && !optGenres.get().isEmpty() ?
+                            optGenres.get().stream().map(indieGenre -> indieGenre.getGenre().getName()).toList() : null;
+                    return IndieResponse.LikeDetail.of(indieMovie, poster, indieMovie.getAverageRating(), genres);
+                });
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", moviePage);
+    }
 
-                        List<String> genres = null;
-                        List<IndieGenre> movieGenres = indieGenreRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
-                        if(!movieGenres.isEmpty()){
-                            genres = movieGenres.stream()
-                                    .map(movieGenre -> {
-                                        return movieGenre.getGenre().getName();
-                                    }).toList();
-                        }
-
-                        return IndieResponse.LikeDetail.of(movie, poster, movie.getAverageRating(), genres);
-                    }).toList();
-            return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", genreMovies);
+    public ApiResponse checkLikeCommercial(CustomUserDetails userDetails){
+        Boolean result = false;
+        Long userId = userDetails.getUserId();
+        Optional<List<LikeCommercial>> likes = likeCommercialRepository.findByUserId(userId);
+        if(likes.isPresent() && !likes.isEmpty()){
+            result = true;
         }
-        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", null);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", result);
     }
 }

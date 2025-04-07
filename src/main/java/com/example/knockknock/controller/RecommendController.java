@@ -45,8 +45,8 @@ public class RecommendController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse listRate(@RequestParam double minValue, @RequestParam double maxValue, @RequestParam int pageNum, @RequestParam int pageSize, @AuthenticationPrincipal CustomUserDetails userDetails){
-        List<Long> recommendedMovieIds = recommendService.getRecommendedMovieIds(userDetails.getUserId());
-        return recommendService.listRate(minValue, maxValue, pageNum, pageSize, recommendedMovieIds);
+    public ApiResponse listRate(@RequestParam Integer num, @RequestParam double minValue, @RequestParam double maxValue, @RequestParam int pageNum, @RequestParam int pageSize, @AuthenticationPrincipal CustomUserDetails userDetails){
+        ApiResponse recommendResult = recommendService.recommendProcess(num, userDetails);
+        return recommendService.listRate(minValue, maxValue, pageNum, pageSize, recommendResult);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.knockknock.controller.response;
 
+import com.example.knockknock.document.MakerDocument;
 import com.example.knockknock.entity.IndieMovie;
 import com.example.knockknock.entity.Maker;
 import com.example.knockknock.entity.Type;
@@ -102,6 +103,17 @@ public class MakerResponse {
                     .userId(userId)
                     .name(maker.getName())
                     .image(maker.getThumbnailImage())
+                    .qnaCount(qnaCount)
+                    .filmography(filmography)
+                    .build();
+        }
+
+        public static Detail of(MakerDocument maker, Long userId, String thumbnailImage, Long qnaCount, List<Filmography> filmography) {
+            return Detail.builder()
+                    .id(Long.parseLong(maker.getId()))
+                    .userId(userId)
+                    .name(maker.getName())
+                    .image(thumbnailImage)
                     .qnaCount(qnaCount)
                     .filmography(filmography)
                     .build();

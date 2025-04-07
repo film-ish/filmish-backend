@@ -2,16 +2,19 @@ pipeline {
     agent any
 
     environment {
-        DB_URL         = credentials('DB_URL')
-        DB_USERNAME    = credentials('DB_USERNAME')
-        DB_PASSWORD    = credentials('DB_PASSWORD')
-        DB_DRIVER      = credentials('DB_DRIVER')
-        JWT_SECRET     = credentials('JWT_SECRET')
-        REDIS_HOST     = credentials('REDIS_HOST')
-        REDIS_PORT     = credentials('REDIS_PORT')
-        AWS_ACCESS_KEY = credentials('AWS_ACCESS_KEY')
-        AWS_SECRET_KEY = credentials('AWS_SECRET_KEY')
-        AWS_S3_BUCKET  = credentials('AWS_S3_BUCKET')
+        DB_URL                = credentials('DB_URL')
+        DB_USERNAME           = credentials('DB_USERNAME')
+        DB_PASSWORD           = credentials('DB_PASSWORD')
+        DB_DRIVER             = credentials('DB_DRIVER')
+        JWT_SECRET            = credentials('JWT_SECRET')
+        REDIS_HOST            = credentials('REDIS_HOST')
+        REDIS_PORT            = credentials('REDIS_PORT')
+        AWS_ACCESS_KEY        = credentials('AWS_ACCESS_KEY')
+        AWS_SECRET_KEY        = credentials('AWS_SECRET_KEY')
+        AWS_S3_BUCKET         = credentials('AWS_S3_BUCKET')
+        ELASTICSEARCH_URIS    = credentials('ELASTICSEARCH_URIS')
+        ELASTICSEARCH_USERNAME = credentials('ELASTICSEARCH_USERNAME')
+        ELASTICSEARCH_PASSWORD = credentials('ELASTICSEARCH_PASSWORD')
 
     }
 
@@ -68,6 +71,9 @@ REDIS_PORT=${REDIS_PORT}
 AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
 AWS_SECRET_KEY=${AWS_SECRET_KEY}
 AWS_S3_BUCKET=${AWS_S3_BUCKET}
+ELASTICSEARCH_URIS=${ELASTICSEARCH_URIS}
+ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME}
+ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
 EOL
 
                     # 배포 스크립트 실행

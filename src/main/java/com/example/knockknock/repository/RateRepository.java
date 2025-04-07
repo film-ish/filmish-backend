@@ -24,23 +24,12 @@ public interface RateRepository extends JpaRepository<Rate, Long> {
     @Query("SELECT r FROM Rate r WHERE r.indieMovie.id = :indieId")
     Optional<List<Rate>> findAllByIndieId(Long indieId);
 
-//    @Query("SELECT r.indieMovie.id AS movieId, AVG(r.value) AS averageRating " +
-//            "FROM Rate r " +
-//            "GROUP BY r.indieMovie.id " +
-//            "HAVING AVG(r.value) BETWEEN :minValue AND :maxValue " +
-//            "ORDER BY " +
-//            "    CASE WHEN r.indieMovie.id IN :recommendedMovieIds THEN 0 ELSE 1 END, " +
-//            "    AVG(r.value) DESC")
-//    Page<Object[]> findMoviesWithAverageRatingAndRecommendation(
-//            @Param("minValue") double minValue,
-//            @Param("maxValue") double maxValue,
-//            @Param("recommendedMovieIds") List<Long> recommendedMovieIds,
-//            Pageable pageable
-//    );
-
     @Query("SELECT AVG(r.value) FROM Rate r WHERE r.indieMovie.id = :indieId AND r.deletedAt IS NULL")
     Double findAverageRatingByIndieMovieId(@Param("indieId") Long indieId);
 
+    @Query("SELECT r.indieMovie.id AS movieId, AVG(r.value) AS averageRating " +
+            "FROM Rate r GROUP BY r.indieMovie.id HAVING AVG(r.value) BETWEEN :minValue AND :maxValue")
+    Page<Object[]> findMoviesWithAverageRatingBetween(double minValue, double maxValue, Pageable pageable);
 
     @Query("""
     SELECT m.id, 
@@ -58,6 +47,9 @@ public interface RateRepository extends JpaRepository<Rate, Long> {
             @Param("recommendedIds") List<Long> recommendedIds,
             Pageable pageable
     );
+
+    @Query("SELECT r FROM Rate r WHERE r.user.id = :userId AND r.indieMovie.id = :indieMovieId")
+    Optional<Rate> findByUserIdAndIndieMovieId(@Param("userId") Long userId, @Param("indieMovieId") Long indieMovieId);
 }
 
 
