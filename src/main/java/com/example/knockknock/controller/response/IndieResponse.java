@@ -1,10 +1,9 @@
 package com.example.knockknock.controller.response;
 
+import com.example.knockknock.document.MovieDocument;
 import com.example.knockknock.entity.IndieMovie;
-import com.example.knockknock.entity.Review;
 import lombok.*;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +40,7 @@ public class IndieResponse {
     }
 
     @Getter
+    @Setter
     @Builder
     public static class LikeDetail<T> {
         private Long id;
@@ -58,6 +58,19 @@ public class IndieResponse {
                     .title(movie.getTitle())
                     .poster(poster)
                     .pubDate(movie.getPubdate())
+                    .runningTime(movie.getRunningTime())
+                    .value(value)
+                    .genres(genres)
+                    .build();
+        }
+
+        public static <T> LikeDetail<T> of(MovieDocument movie, String poster,
+                                           T value, List<String> genres){
+            return LikeDetail.<T>builder()
+                    .id(Long.parseLong(movie.getId()))
+                    .title(movie.getTitle())
+                    .poster(poster)
+                    .pubDate(movie.getPubDate())
                     .runningTime(movie.getRunningTime())
                     .value(value)
                     .genres(genres)

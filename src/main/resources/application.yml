@@ -3,9 +3,9 @@ spring:
     name: KnockKnock
 
   elasticsearch:
-    uris: localhost:9200
-    username: elastic
-    password: fB0N28Nu75ySXcScWWzd
+    uris: ${ELASTICSEARCH_URIS}
+    username: ${ELASTICSEARCH_USERNAME}
+    password: ${ELASTICSEARCH_PASSWORD}
     data:
       elasticsearch:
         repositories:
