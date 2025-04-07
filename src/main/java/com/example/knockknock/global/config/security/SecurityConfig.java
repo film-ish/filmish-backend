@@ -70,8 +70,9 @@ public class SecurityConfig{
                             .requestMatchers(HttpMethod.GET, "/swagger-resources/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/webjars/**").permitAll()
                             .requestMatchers("/api/v1/knockknock").permitAll()
-                            .requestMatchers("/knockknock", "/upload-json").permitAll()
-                            .requestMatchers("/", "/knockknock","/users", "/users?**", "/users/login", "/users/reissue",
+                            .requestMatchers("/knockknock", "/upload-json", "/knockknock/movies", "/knockknock/directors",
+                                                "/knockknock/actors", "/knockknock/genres", "/knockknock/keywords").permitAll()
+                            .requestMatchers("/", "/knockknock","/users", "/users?**", "/users/login", "/users/reissue", "/movies/genre/{genreId}",
                                     "/movies/{movieId}", "/movies/{movieId}/reviews", "/reviews/{reviewId}", "/reviews/{reviewId}/comments",
                                     "/reviews/comments", "/makers/{makerId}", "/qna/{makerId}", "/qna/{qnaId}/comments", "/cinemas",
                                     "/platforms", "/actors", "/recommendation/genres", "/recommendation/rates").permitAll()

@@ -82,8 +82,10 @@ public class MovieController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse genreMovies(@PathVariable Long genreId) {
-        return movieService.genreMovies(genreId);
+    public ApiResponse genreMovies(@PathVariable Long genreId,
+                                   @RequestParam(name = "page") int pageNum,
+                                   @RequestParam(name = "size") int pageSize) {
+        return movieService.genreMovies(genreId, pageNum, pageSize);
     }
 
 }
