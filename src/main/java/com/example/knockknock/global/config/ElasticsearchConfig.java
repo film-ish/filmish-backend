@@ -40,9 +40,9 @@ public class ElasticsearchConfig {
                 new UsernamePasswordCredentials(username, password));
 
         RestClientBuilder builder = RestClient.builder(
-                        new HttpHost("localhost", 9200, "http"))
-                .setHttpClientConfigCallback(httpClientBuilder ->
-                        httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+                new HttpHost("elasticsearch", 9200, "http"))
+            .setHttpClientConfigCallback(httpClientBuilder ->
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
 
         return new RestHighLevelClient(builder);
     }
