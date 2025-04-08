@@ -22,10 +22,10 @@ public class IndieResponse {
         private float averageRating;
         private String type;
         private List<String> posters;
-        private List<Map<Long, String>> stillcuts;
+        private List<String> stillcuts;
         private List<MakerResponse.Role> makers;
 
-        public static IndieResponse.DetailAll of(IndieMovie indieMovie, List<Map<Long, String>> stillcuts,
+        public static IndieResponse.DetailAll of(IndieMovie indieMovie, List<String> stillcuts,
                                                  List<MakerResponse.Role> makers, List<String> posters) {
             return DetailAll.builder()
                     .id(indieMovie.getId())
