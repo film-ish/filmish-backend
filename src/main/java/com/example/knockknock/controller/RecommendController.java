@@ -22,7 +22,7 @@ import java.util.List;
 public class RecommendController {
     private final RecommendService recommendService;
 
-    @GetMapping("")
+    @GetMapping
     @Operation(summary = "추천 목록 조회", description = "추천 목록을 조회합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")

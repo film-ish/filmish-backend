@@ -62,6 +62,7 @@ public class UserService {
         String password = join.getPassword();
         String nickname = join.getNickname();
         LocalDate birth = join.getBirth();
+        MultipartFile imageFile = join.getImage();
 
         log.info("joinProcess(), userEmail = " + userEmail);
 
@@ -74,7 +75,16 @@ public class UserService {
                 .active(true)
                 .build();
 
-        userRepository.save(data);
+        User saved = userRepository.save(data);
+
+        String imagePath = saveImage(saved.getId(), imageFile);
+        String compressPath = saveCompressImage(saved.getId(), imageFile);
+
+        data.setImage(imagePath);
+        data.setHeadImage(compressPath);
+
+        userRepository.save(saved);
+
         return ApiSuccessResponse.response(ResponseCode.Created, "Join request success!", null);
     }
 
@@ -181,11 +191,8 @@ public class UserService {
 
     // 회원 정보 수정
     public ApiResponse updateUser(Long userId, UserRequest.Modify Modify) {
-        log.info("ServiceLayer 도달");
         MultipartFile imageFile = Modify.getImage();
-        log.info("입력된 imageFile = {}", imageFile);
         String nickname = Modify.getNickname();
-        log.info("입력된 nickname = {}", nickname);
         User userEntity = null;
 
         // 사용자 조회
@@ -203,54 +210,80 @@ public class UserService {
             return ApiSuccessResponse.response(ResponseCode.Ok, "닉네임 수정이 완료되었습니다.", null);
         }
 
+        // 기존 이미지가 있다면 S3에서 삭제
+        if (userEntity.getImage() != null && !userEntity.getImage().isEmpty()) {
+            String oldImageKey = extractKeyFromUrl(userEntity.getImage());
+            if (oldImageKey != null) {
+                s3Service.deleteFile(bucketName, oldImageKey);
+            }
+        }
+
+        // 기존 압축 이미지가 있다면 S3에서 삭제
+        if (userEntity.getHeadImage() != null && !userEntity.getHeadImage().isEmpty()) {
+            String oldCompressedKey = extractKeyFromUrl(userEntity.getHeadImage());
+            if (oldCompressedKey != null) {
+                s3Service.deleteFile(bucketName, oldCompressedKey);
+            }
+        }
+
+        String imagePath = saveImage(userId, imageFile);
+        String compressedPath = saveCompressImage(userId, imageFile);
+
+        if (imagePath == null || compressedPath == null){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미지 저장 중 오류가 발생했습니다.");
+        }
+
+        // 사용자 정보 업데이트
+        userEntity.setNickname(nickname);
+        userEntity.setImage(imagePath);
+        userEntity.setHeadImage(compressedPath);
+        userRepository.save(userEntity);
+
+        return ApiSuccessResponse.response(ResponseCode.Ok, "정보 수정이 완료되었습니다.", null);
+    }
+
+    private String saveImage(Long userId, MultipartFile imageFile){
+        // 원본 이미지 S3에 업로드
+        String originalFileName = imageFile.getOriginalFilename();
+        String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        String originalKey = "images/original/" + userId + "_" + System.currentTimeMillis() + fileExtension;
+        String imagePath = null;
         try {
-            // 기존 이미지가 있다면 S3에서 삭제
-            if (userEntity.getImage() != null && !userEntity.getImage().isEmpty()) {
-                String oldImageKey = extractKeyFromUrl(userEntity.getImage());
-                if (oldImageKey != null) {
-                    s3Service.deleteFile(bucketName, oldImageKey);
-                }
-            }
-
-            // 기존 압축 이미지가 있다면 S3에서 삭제
-            if (userEntity.getHeadImage() != null && !userEntity.getHeadImage().isEmpty()) {
-                String oldCompressedKey = extractKeyFromUrl(userEntity.getHeadImage());
-                if (oldCompressedKey != null) {
-                    s3Service.deleteFile(bucketName, oldCompressedKey);
-                }
-            }
-
-            // 원본 이미지 S3에 업로드
-            String originalFileName = imageFile.getOriginalFilename();
-            String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            String originalKey = "images/original/" + userId + "_" + System.currentTimeMillis() + fileExtension;
-
             // S3에 원본 이미지 업로드
             s3Service.uploadFile(bucketName, originalKey, imageFile.getBytes(), imageFile.getContentType());
-            String imagePath = "https://" + bucketName + ".s3.amazonaws.com/" + originalKey;
+            imagePath = "https://" + bucketName + ".s3.amazonaws.com/" + originalKey;
+        } catch (IOException e){
+            log.info("이미지 저장 중 오류 발생");
+            return null;
+        }
+        return imagePath;
+    }
 
-            // 이미지 압축
-            byte[] compressedImageBytes = compressImage(imageFile);
-            if (compressedImageBytes == null) {
-                return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "이미지 압축 실패");
-            }
+    private String saveCompressImage(Long userId, MultipartFile imageFile) {
+        // 이미지 압축
+        byte[] compressedImageBytes = compressImage(imageFile);
+        if (compressedImageBytes == null) {
+            log.info("이미지 압축 실패");
+            return null;
+        }
+        // 압축 이미지 S3에 업로드
+        String compressedKey = "images/compressed/" + userId + "_" + System.currentTimeMillis() + ".jpg";
+        s3Service.uploadFile(bucketName, compressedKey, compressedImageBytes, "image/jpeg");
+        String compressedPath = "https://" + bucketName + ".s3.amazonaws.com/" + compressedKey;
+        return compressedPath;
+    }
 
-            // 압축 이미지 S3에 업로드
-            String compressedKey = "images/compressed/" + userId + "_" + System.currentTimeMillis() + ".jpg";
-            s3Service.uploadFile(bucketName, compressedKey, compressedImageBytes, "image/jpeg");
-            String compressedPath = "https://" + bucketName + ".s3.amazonaws.com/" + compressedKey;
 
-            // 사용자 정보 업데이트
-            userEntity.setNickname(nickname);
-            userEntity.setImage(imagePath);
-            userEntity.setHeadImage(compressedPath);
+    // 비밀 번호 수정
+    public ApiResponse modifyPassword(CustomUserDetails userDetails, String newPassword) {
+        try {
+            User userEntity = userRepository.findById(userDetails.getUserId()).get();
+            userEntity.setPassword(bCryptPasswordEncoder.encode(newPassword));
             userRepository.save(userEntity);
-
-            return ApiSuccessResponse.response(ResponseCode.Ok, "정보 수정이 완료되었습니다.", null);
-
-        } catch (IOException e) {
-            log.error("이미지 처리 중 오류 발생: ", e);
-            return ApiErrorResponse.of(ErrorCode.SERVER_ERROR, "이미지 처리 중 오류가 발생했습니다.");
+            return ApiSuccessResponse.response(ResponseCode.Ok, "비밀번호를 성공적으로 수정하였습니다.", null);
+        } catch (Exception e) {
+            log.error("Failed to update password: " + e.getMessage());
+            return ApiErrorResponse.of(ErrorCode.SERVER_ERROR, "Failed to update password");
         }
     }
 
@@ -267,18 +300,6 @@ public class UserService {
         return null;
     }
 
-    // 비밀 번호 수정
-    public ApiResponse modifyPassword(CustomUserDetails userDetails, String newPassword) {
-        try {
-            User userEntity = userRepository.findById(userDetails.getUserId()).get();
-            userEntity.setPassword(bCryptPasswordEncoder.encode(newPassword));
-            userRepository.save(userEntity);
-            return ApiSuccessResponse.response(ResponseCode.Ok, "비밀번호를 성공적으로 수정하였습니다.", null);
-        } catch (Exception e) {
-            log.error("Failed to update password: " + e.getMessage());
-            return ApiErrorResponse.of(ErrorCode.SERVER_ERROR, "Failed to update password");
-        }
-    }
 
     // MultipartFile을 압축하는 메서드
     private byte[] compressImage(MultipartFile imageFile) {

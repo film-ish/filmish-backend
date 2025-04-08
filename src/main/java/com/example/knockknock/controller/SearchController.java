@@ -25,7 +25,7 @@ import java.util.List;
 public class SearchController {
     private final SearchService searchService;
 
-    @GetMapping("")
+    @GetMapping
     @Operation(summary = "통합 검색", description = "통합 검색을 실시합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")

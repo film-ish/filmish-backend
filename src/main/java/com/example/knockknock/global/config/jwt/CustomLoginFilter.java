@@ -226,7 +226,7 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setStatus(HttpServletResponse.SC_OK);
         ObjectMapper mapper = new ObjectMapper();
         try {
-            ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "Bad request");
+            ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "아이디 또는 비밀번호를 확인하세요.");
             String json = mapper.writeValueAsString(errorResponse);
             response.getWriter().write(json);
         } catch (IOException e) {
