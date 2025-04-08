@@ -75,7 +75,7 @@ public class SecurityConfig{
                             .requestMatchers("/", "/knockknock","/users", "/users?**", "/users/login", "/users/reissue", "/movies/genre/{genreId}",
                                     "/movies/{movieId}", "/movies/{movieId}/reviews", "/reviews/{reviewId}", "/reviews/{reviewId}/comments",
                                     "/reviews/comments", "/makers/{makerId}", "/qna/{makerId}", "/qna/{qnaId}/comments", "/cinemas",
-                                    "/platforms", "/actors", "/recommendation/genres", "/recommendation/rates").permitAll()
+                                    "/platforms", "/actors", "/recommendation/genres", "/recommendation/rates", "/users/email", "/users/nickname").permitAll()
                             .requestMatchers("/movies/**").authenticated()
 
                             .anyRequest().authenticated()

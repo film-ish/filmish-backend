@@ -9,5 +9,5 @@ import java.util.Optional;
 
 public interface LikeCommercialRepository extends JpaRepository<LikeCommercial, Long> {
     @Query("SELECT lc FROM LikeCommercial lc WHERE lc.user.id = :userId")
-    Optional<List<LikeCommercial>> findByUserId(Long userId);
+    List<LikeCommercial> findByUserId(Long userId);
 }

@@ -7,6 +7,7 @@ import com.example.knockknock.entity.*;
 import com.example.knockknock.error.code.ErrorCode;
 import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -144,15 +145,30 @@ public class MovieService {
 
     public ApiResponse likeCommercial(MovieRequest.LikeCommercial request, CustomUserDetails customUserDetails){
         List<Long> commercialId = request.getCommercialId();
+        if (commercialId == null || commercialId.size() < 5) {
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "5개 이상 선택해주세요.");
+        }
 
-        commercialId.forEach(id -> {
-            User userEntity = userRepository.findById(customUserDetails.getUserId()).get();
-            CommercialMovie movie = commercialMovieRepository.findById(id).get();
-            likeCommercialRepository.save(LikeCommercial.builder()
-                    .user(userEntity)
-                    .commercialMovie(movie)
-                    .build());
-        });
+        User userEntity;
+        try {
+            userEntity = userRepository.findById(customUserDetails.getUserId())
+                    .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사용자입니다."));
+        } catch(EntityNotFoundException e){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, e.getMessage());
+        }
+
+        for (Long id : commercialId) {
+            try {
+                CommercialMovie movie = commercialMovieRepository.findById(id)
+                        .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 영화입니다."));
+                likeCommercialRepository.save(LikeCommercial.builder()
+                        .user(userEntity)
+                        .commercialMovie(movie)
+                        .build());
+            } catch (EntityNotFoundException e) {
+                return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, e.getMessage());
+            }
+        }
 
         log.info("보고싶어요 등록이 완료되었습니다.");
         return ApiSuccessResponse.response(ResponseCode.Created, "보고싶어요 등록이 완료되었습니다.", null);
@@ -177,8 +193,8 @@ public class MovieService {
     public ApiResponse checkLikeCommercial(CustomUserDetails userDetails){
         Boolean result = false;
         Long userId = userDetails.getUserId();
-        Optional<List<LikeCommercial>> likes = likeCommercialRepository.findByUserId(userId);
-        if(likes.isPresent() && !likes.isEmpty()){
+        List<LikeCommercial> likes = likeCommercialRepository.findByUserId(userId);
+        if(!likes.isEmpty()){
             result = true;
         }
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", result);

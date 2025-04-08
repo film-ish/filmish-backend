@@ -39,21 +39,24 @@ public class UserController {
         userService.withdraw(userId, request, response);
     }
 
-    @GetMapping("")
-    @Operation(summary = "이메일 또는 닉네임 중복 확인 조회", description = "이메일 또는 닉네임 중복 확인을 시도합니다.")
+    @GetMapping("/email")
+    @Operation(summary = "이메일 중복 확인 조회", description = "이메일 중복 확인을 시도합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함"),
     })
-    public ApiResponse checkDuplicate(
-            @RequestParam(name = "email", required = false) String email,
-            @RequestParam(name = "nickname", required = false) String nickname
-    ) {
-        if (email != null) {
-            return userService.checkEmail(email);
-        } else if (nickname != null) {
-            return userService.checkNickname(nickname);
-        }
-        return null;
+    public ApiResponse checkEmail(
+            @RequestParam(name = "value") String email) {
+        return userService.checkEmail(email);
+    }
+
+    @GetMapping("/nickname")
+    @Operation(summary = "닉네임 중복 확인 조회", description = "닉네임 중복 확인을 시도합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함"),
+    })
+    public ApiResponse checkNickname(
+            @RequestParam(name = "value") String nickname) {
+        return userService.checkNickname(nickname);
     }
 
     // 회원 정보 조회
