@@ -112,9 +112,16 @@ public class MovieService {
                     .collect(Collectors.toList());
         }
 
+        List<String> images = null;
+        List<Poster> posters = posterRepository.findByIndieId(movieId).orElse(Collections.emptyList());
+        if(!posters.isEmpty()){
+            images = posters.stream()
+                    .map(Poster::getPoster).collect(Collectors.toList());
+        }
+
         log.info("영화 조회가 완료되었습니다.");
-        IndieResponse.Detail detail = IndieResponse.Detail.of(indieMovie.get(), stillcuts, roles);
-        return ApiSuccessResponse.response(ResponseCode.Ok, "영화 조회가 완료되었습니다.", detail);
+        IndieResponse.DetailAll result = IndieResponse.DetailAll.of(indieMovie.get(), stillcuts, roles, images);
+        return ApiSuccessResponse.response(ResponseCode.Ok, "영화 조회가 완료되었습니다.", result);
     }
 
     public ApiResponse listCommercial(){
