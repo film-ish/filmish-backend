@@ -81,20 +81,15 @@ public class ReviewService {
                 .build();
 
         Review savedReview = reviewRepository.save(newReview);
-
-        if(request.getImages() != null) {
+        if(request.getImages() != null && !request.getImages().isEmpty()) {
             List<ReviewImage> reviewImages = request.getImages().stream()
                     .map(image -> uploadSingleImage(savedReview, image))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
-
-            // 이미지 업로드 중 실패한 경우 체크
-            if (reviewImages.isEmpty()) {
-                // 이미지 업로드 실패 시 ApiErrorResponse 반환
-                return ApiErrorResponse.of(ErrorCode.SERVER_ERROR, "이미지 업로드에 실패했습니다.");
+            // 이미지 존재 여부 체크
+            if (!reviewImages.isEmpty()) {
+                reviewImageRepository.saveAll(reviewImages);
             }
-
-            reviewImageRepository.saveAll(reviewImages);
         }
         return ApiSuccessResponse.response(ResponseCode.Created, "리뷰가 성공적으로 등록되었습니다.", null);
     }
