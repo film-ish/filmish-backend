@@ -1,7 +1,10 @@
 package com.example.knockknock.service;
 
+import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.response.*;
 import com.example.knockknock.entity.*;
+import com.example.knockknock.error.code.ErrorCode;
+import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,16 +25,17 @@ public class MypageService {
     private final IndieMovieRepository indieMovieRepository;
     private final PosterRepository posterRepository;
     private final IndieGenreRepository indieGenreRepository;
-    private final GenreRepository genreRepository;
     private final RateRepository rateRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final QnaRepository qnaRepository;
     private final QnaCommentRepository qnaCommentRepository;
     private final ReviewCommentRepository reviewCommentRepository;
-    private final UserRepository userRepository;
 
-    public ApiResponse listLikeIndie(Long userId, int pageNum, int pageSize) {
+    public ApiResponse listLikeIndie(Long userId, int pageNum, int pageSize, CustomUserDetails userDetails) {
+        if (userId != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "접근 권한이 없습니다.");
+        }
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<IndieResponse.LikeDetail> likePage = likeIndieRepository.findByUserId(userId, pageable)
                 .map(likeIndie -> {
@@ -61,7 +65,10 @@ public class MypageService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", likePage);
     }
 
-    public ApiResponse listRating(Long userId, int pageNum, int pageSize) {
+    public ApiResponse listRating(Long userId, int pageNum, int pageSize, CustomUserDetails userDetails) {
+        if (userId != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "접근 권한이 없습니다.");
+        }
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<MypageResponse.RateDetail> ratePage = rateRepository.findByUserId(userId, pageable)
                 .map(rate -> {
@@ -76,7 +83,10 @@ public class MypageService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", ratePage);
     }
 
-    public ApiResponse listReviews(Long userId, int pageNum, int pageSize) {
+    public ApiResponse listReviews(Long userId, int pageNum, int pageSize, CustomUserDetails userDetails) {
+        if (userId != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "접근 권한이 없습니다.");
+        }
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<MypageResponse.ReviewDetail> reviewPage = reviewRepository.findByUserId(userId, pageable)
                 .map(review -> {
@@ -92,7 +102,10 @@ public class MypageService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
     }
 
-    public ApiResponse listQnas(Long userId, int pageNum, int pageSize) {
+    public ApiResponse listQnas(Long userId, int pageNum, int pageSize, CustomUserDetails userDetails) {
+        if (userId != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "접근 권한이 없습니다.");
+        }
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<MypageResponse.QnaDetail> qnaPage = qnaRepository.findByUserId(userId, pageable)
                 .map(qna -> {
@@ -112,7 +125,10 @@ public class MypageService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", qnaPage);
     }
 
-    public ApiResponse listReviewComments(Long userId, int pageNum, int pageSize) {
+    public ApiResponse listReviewComments(Long userId, int pageNum, int pageSize, CustomUserDetails userDetails) {
+        if (userId != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "접근 권한이 없습니다.");
+        }
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<MypageResponse.CommentReviewDetail> reviewPage = reviewCommentRepository.findByUserId(userId, pageable)
                 .map(reviewComment -> {
@@ -130,7 +146,10 @@ public class MypageService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
     }
 
-    public ApiResponse listQnaComments(Long userId, int pageNum, int pageSize) {
+    public ApiResponse listQnaComments(Long userId, int pageNum, int pageSize, CustomUserDetails userDetails) {
+        if (userId != userDetails.getUserId()){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "접근 권한이 없습니다.");
+        }
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Optional<List<QnaComment>> replyList = qnaCommentRepository.findByUserId(userId);
         List<QnaComment> replies = replyList.isEmpty() ? null : replyList.get();
