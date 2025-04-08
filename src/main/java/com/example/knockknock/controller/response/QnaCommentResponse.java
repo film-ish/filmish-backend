@@ -25,7 +25,7 @@ public class QnaCommentResponse {
                     .id(qnaComment.getId())
                     .writer(writer.getNickname())
                     .writerImage(writer.getHeadImage())
-                    .content(qnaComment.getContent())
+                    .content(qnaComment.isSoftDeleted() ? "삭제된 댓글입니다." : qnaComment.getContent())
                     .subComments(comments)
                     .build();
         }

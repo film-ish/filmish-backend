@@ -15,7 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 @SuperBuilder
 @SQLDelete(sql = "UPDATE qna SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
-@Where(clause = "deleted_at IS NULL")
 public class QnaComment extends BaseTimeEntity {
     @Id
     @Column(name="id", nullable = false)
