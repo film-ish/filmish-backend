@@ -8,8 +8,10 @@ import com.example.knockknock.controller.response.SearchResponse;
 import com.example.knockknock.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,15 +26,18 @@ import java.util.List;
 @Slf4j
 public class SearchController {
     private final SearchService searchService;
+    /*
+        SecurityConfig에서 permitAll()로 설정해두었더라도, @AuthenticationPrincipal을 사용하는 컨트롤러는 JWTFilter를 거치게 됨
+     */
 
     @GetMapping
     @Operation(summary = "통합 검색", description = "통합 검색을 실시합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse totalSearch(@RequestParam("data") String query, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ApiResponse totalSearch(@RequestParam("data") String query, HttpServletRequest request) {
         log.info("입력된 query ={}", query);
-        return searchService.totalSearch(query, 0, userDetails);
+        return searchService.totalSearch(query, 0, request);
     }
 
     @GetMapping("/movies")
@@ -40,9 +45,9 @@ public class SearchController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse movieSearch(@RequestParam("data") String query, @RequestParam("page") int pageNum, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ApiResponse movieSearch(@RequestParam("data") String query, @RequestParam("page") int pageNum, HttpServletRequest request) {
         log.info("입력된 query ={}", query);
-        List<SearchResponse.MovieDetail> result =  searchService.movieSearch(query, pageNum, userDetails);
+        List<SearchResponse.MovieDetail> result =  searchService.movieSearch(query, pageNum, request);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 검색이 완료되었습니다.", result);
     }
 
@@ -51,9 +56,9 @@ public class SearchController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse actorSearch(@RequestParam("data") String query, @RequestParam("page") int pageNum, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ApiResponse actorSearch(@RequestParam("data") String query, @RequestParam("page") int pageNum) {
         log.info("입력된 query ={}", query);
-        List<SearchResponse.MakerDetail> result = searchService.actorSearch(query, pageNum, userDetails);
+        List<SearchResponse.MakerDetail> result = searchService.actorSearch(query, pageNum);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 검색이 완료되었습니다.", result);
     }
 
@@ -62,9 +67,9 @@ public class SearchController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse directorSearch(@RequestParam("data") String query, @RequestParam("page") int pageNum, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ApiResponse directorSearch(@RequestParam("data") String query, @RequestParam("page") int pageNum) {
         log.info("입력된 query ={}", query);
-        List<SearchResponse.MakerDetail> result =  searchService.directorSearch(query, pageNum, userDetails);
+        List<SearchResponse.MakerDetail> result =  searchService.directorSearch(query, pageNum);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 검색이 완료되었습니다.", result);
     }
 
@@ -73,9 +78,9 @@ public class SearchController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse genreSearch(@RequestParam("data") String query, @RequestParam("page") int pageNum, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ApiResponse genreSearch(@RequestParam("data") String query, @RequestParam("page") int pageNum, HttpServletRequest request) {
         log.info("입력된 query ={}", query);
-        List<SearchResponse.KeyMovies> result = searchService.genreSearch(query, pageNum, userDetails);
+        List<SearchResponse.KeyMovies> result = searchService.genreSearch(query, pageNum, request);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 검색이 완료되었습니다.", result);
     }
 
@@ -84,9 +89,9 @@ public class SearchController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse keywordSearch(@RequestParam("data") String query, @RequestParam("page") int pageNum, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ApiResponse keywordSearch(@RequestParam("data") String query, @RequestParam("page") int pageNum, HttpServletRequest request) {
         log.info("입력된 query ={}", query);
-        List<SearchResponse.KeyMovies> result =  searchService.keywordSearch(query, pageNum, userDetails);
+        List<SearchResponse.KeyMovies> result =  searchService.keywordSearch(query, pageNum, request);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 검색이 완료되었습니다.", result);
     }
 

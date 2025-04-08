@@ -73,16 +73,12 @@ public class MovieService {
             return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "조회한 영화가 존재하지 않습니다.");
         }
 
-        List<Map<Long, String>> stillcuts = null;
+        List<String> stillcuts = null;
         Optional<List<Stillcut>> stillcutList = stillcutRepository.findByIndieId(movieId);
         if (!stillcutList.isEmpty()){
             stillcuts = stillcutList.get()
                             .stream()
-                            .map(stillcut -> {
-                                Map<Long, String> map = new HashMap<>();
-                                map.put(stillcut.getId(), stillcut.getStillcut());
-                                return map;
-                            })
+                            .map(Stillcut::getStillcut)
                             .collect(Collectors.toList());
         }
 

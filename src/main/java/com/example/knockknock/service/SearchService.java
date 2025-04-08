@@ -5,7 +5,9 @@ import com.example.knockknock.controller.response.*;
 import com.example.knockknock.entity.*;
 import com.example.knockknock.error.code.ErrorCode;
 import com.example.knockknock.error.response.ApiErrorResponse;
+import com.example.knockknock.global.config.jwt.TokenProvider;
 import com.example.knockknock.repository.*;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
@@ -24,20 +26,22 @@ import java.util.*;
 @Slf4j
 public class SearchService {
     private final PosterRepository posterRepository;
+    private final UserRepository userRepository;
     private final IndieGenreRepository indieGenreRepository;
     private final QnaRepository qnaRepository;
     private final IndieMovieRepository indieMovieRepository;
     private final MakerRepository makerRepository;
     private final LikeIndieRepository likeIndieRepository;
+    private final TokenProvider tokenProvider;
     private final RestHighLevelClient restHighLevelClient;
     private static final int PAGESIZE = 20;
 
-    public ApiResponse totalSearch(String query, int pageNum, CustomUserDetails userDetails) {
-        List<SearchResponse.MovieDetail> findTitleMovies = movieSearch(query, pageNum, userDetails);
-        List<SearchResponse.MakerDetail> findDirectors = directorSearch(query, pageNum, userDetails);
-        List<SearchResponse.MakerDetail> findActors = actorSearch(query, pageNum, userDetails);
-        List<SearchResponse.KeyMovies> findGenreMovies = genreSearch(query, pageNum, userDetails);
-        List<SearchResponse.KeyMovies> findKeywordMovies = keywordSearch(query, pageNum, userDetails);
+    public ApiResponse totalSearch(String query, int pageNum, HttpServletRequest request) {
+        List<SearchResponse.MovieDetail> findTitleMovies = movieSearch(query, pageNum, request);
+        List<SearchResponse.MakerDetail> findDirectors = directorSearch(query, pageNum);
+        List<SearchResponse.MakerDetail> findActors = actorSearch(query, pageNum);
+        List<SearchResponse.KeyMovies> findGenreMovies = genreSearch(query, pageNum, request);
+        List<SearchResponse.KeyMovies> findKeywordMovies = keywordSearch(query, pageNum, request);
 
         SearchResponse.ListResult searchResult = SearchResponse.ListResult.of(findTitleMovies, findDirectors, findActors, findGenreMovies, findKeywordMovies);
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회하였습니다.", searchResult);
@@ -45,8 +49,16 @@ public class SearchService {
 
 
     // 영화 제목 검색
-    public List<SearchResponse.MovieDetail> movieSearch(String query, int pageNum, CustomUserDetails userDetails){
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
+    public List<SearchResponse.MovieDetail> movieSearch(String query, int pageNum, HttpServletRequest request){
+        Long userId = null;
+        String accessToken = request.getHeader("access");
+
+        if (accessToken != null) {
+            String userEmail = tokenProvider.getUserEmail(accessToken);
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            userId = user != null ? user.getId() : null;
+        }
+
         List<SearchResponse.MovieDetail> findTitleMovies = new ArrayList<>();
         try {
             SearchRequest searchTitleRequest = new SearchRequest("movie_ngram");
@@ -65,6 +77,8 @@ public class SearchService {
                 String movieId = sourceMap.get("movie_id") != null ? sourceMap.get("movie_id").toString() : null;
                 if (movieId == null) continue;
 
+                IndieMovie movie = indieMovieRepository.findById(Long.parseLong(movieId)).orElse(null);
+
                 String poster = posterRepository.findByIndieId(Long.parseLong(movieId))
                         .filter(list -> !list.isEmpty())
                         .map(list -> list.get(0).getPoster())
@@ -76,7 +90,12 @@ public class SearchService {
                     Optional<LikeIndie> optLikeIndie = likeIndieRepository.findByIndieMovieIdAndUserId(Long.parseLong(movieId), userId);
                     like = optLikeIndie.isPresent() ? true : false;
                 }
-                findTitleMovies.add(SearchResponse.MovieDetail.of(sourceMap, poster, like));
+
+                Optional<List<IndieGenre>> optGenres = indieGenreRepository.findByIndieId(Long.parseLong(movieId));
+                List<String> genres = optGenres.isPresent() && !optGenres.get().isEmpty() ?
+                        optGenres.get().stream().map(indieGenre -> indieGenre.getGenre().getName()).toList() : null;
+
+                findTitleMovies.add(SearchResponse.MovieDetail.of(movie, poster, genres, like));
             }
             log.info("영화 조회 완료");
             return findTitleMovies;
@@ -88,9 +107,9 @@ public class SearchService {
 
 
     // 영화인(배우) 검색
-    public List<SearchResponse.MakerDetail> actorSearch(String query, int pageNum, CustomUserDetails userDetails) {
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
+    public List<SearchResponse.MakerDetail> actorSearch(String query, int pageNum) {
         List<SearchResponse.MakerDetail> findActors = new ArrayList<>();
+        Set<String> addedActorIds = new HashSet<>();  // 중복 방지용
         try {
             SearchRequest searchActorRequest = new SearchRequest("movie_ngram");
             SearchSourceBuilder searchActorSourceBuilder = new SearchSourceBuilder();
@@ -108,16 +127,18 @@ public class SearchService {
                 if (actorList != null) {
                     for (Map<String, Object> actor : actorList) {
                         String name = (String) actor.get("name");
-                        if (query.equals(name)) {
-                            String actorId = (String) actor.get("id");
-                            Optional<Maker> optMaker = makerRepository.findById(Long.parseLong(actorId));
-                            optMaker.ifPresent(maker -> {
-                                Long qnaNum = qnaRepository.countByMakerId(maker.getId());
-                                List<String> filmography = indieMovieRepository.findByMakerId(maker.getId()).stream()
-                                        .map(IndieMovie::getTitle).toList();
-                                findActors.add(SearchResponse.MakerDetail.of(maker, qnaNum, filmography));
-                            });
-                        }
+                        String actorId = (String) actor.get("id");
+                        // 중복 체크
+                        if (addedActorIds.contains(actorId) || !query.equals(name)) continue;
+
+                        Optional<Maker> optMaker = makerRepository.findById(Long.parseLong(actorId));
+                        optMaker.ifPresent(maker -> {
+                            Long qnaNum = qnaRepository.countByMakerId(maker.getId());
+                            List<String> filmography = indieMovieRepository.findByMakerId(maker.getId()).stream()
+                                    .map(IndieMovie::getTitle).toList();
+                            findActors.add(SearchResponse.MakerDetail.of(maker, qnaNum, filmography));
+                            addedActorIds.add(actorId);  // 중복 방지를 위해 추가
+                        });
                     }
                 }
             }
@@ -131,9 +152,9 @@ public class SearchService {
 
 
     // (영화인) 감독 검색
-    public List<SearchResponse.MakerDetail> directorSearch(String query, int pageNum, CustomUserDetails userDetails) {
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
+    public List<SearchResponse.MakerDetail> directorSearch(String query, int pageNum) {
         List<SearchResponse.MakerDetail> findDirectors = new ArrayList<>();
+        Set<String> addedDirectorIds = new HashSet<>();  // 중복 방지용
         try {
             SearchRequest searchDirectorRequest = new SearchRequest("movie_ngram");
             SearchSourceBuilder searchDirectorSourceBuilder = new SearchSourceBuilder();
@@ -151,16 +172,18 @@ public class SearchService {
                 if (directorList != null) {
                     for (Map<String, Object> director : directorList) {
                         String name = (String) director.get("name");
-                        if (query.equals(name)) {
-                            String directorId = (String) director.get("id");
-                            Optional<Maker> optMaker = makerRepository.findById(Long.parseLong(directorId));
-                            optMaker.ifPresent(d -> {
-                                Long qnaNum = qnaRepository.countByMakerId(d.getId());
-                                List<String> filmography = indieMovieRepository.findByMakerId(d.getId()).stream()
-                                        .map(IndieMovie::getTitle).toList();
-                                findDirectors.add(SearchResponse.MakerDetail.of(d, qnaNum, filmography));
-                            });
-                        }
+                        String directorId = (String) director.get("id");
+                        // 중복 체크
+                        if (addedDirectorIds.contains(directorId) || !query.equals(name)) continue;
+
+                        Optional<Maker> optMaker = makerRepository.findById(Long.parseLong(directorId));
+                        optMaker.ifPresent(d -> {
+                            Long qnaNum = qnaRepository.countByMakerId(d.getId());
+                            List<String> filmography = indieMovieRepository.findByMakerId(d.getId()).stream()
+                                    .map(IndieMovie::getTitle).toList();
+                            findDirectors.add(SearchResponse.MakerDetail.of(d, qnaNum, filmography));
+                            addedDirectorIds.add(directorId);  // 중복 방지를 위해 추가
+                        });
                     }
                 }
             }
@@ -174,8 +197,16 @@ public class SearchService {
 
     
     // 장르 검색
-    public List<SearchResponse.KeyMovies> genreSearch(String query, int pageNum, CustomUserDetails userDetails) {
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
+    public List<SearchResponse.KeyMovies> genreSearch(String query, int pageNum, HttpServletRequest request) {
+        Long userId = null;
+        String accessToken = request.getHeader("access");
+
+        if (accessToken != null) {
+            String userEmail = tokenProvider.getUserEmail(accessToken);
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            userId = user != null ? user.getId() : null;
+        }
+
         List<SearchResponse.KeyMovies> findGenreMovies = new ArrayList<>();
         try {
             SearchRequest searchGenreRequest = new SearchRequest("movie_ngram");
@@ -227,15 +258,23 @@ public class SearchService {
 
 
     // 키워드 검색
-    public List<SearchResponse.KeyMovies> keywordSearch(String query, int pageNum, CustomUserDetails userDetails){
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
+    public List<SearchResponse.KeyMovies> keywordSearch(String query, int pageNum, HttpServletRequest request){
+        Long userId = null;
+        String accessToken = request.getHeader("access");
+
+        if (accessToken != null) {
+            String userEmail = tokenProvider.getUserEmail(accessToken);
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            userId = user != null ? user.getId() : null;
+        }
+
         List<SearchResponse.KeyMovies> findKeywordMovies = new ArrayList<>();
         try {
             SearchRequest searchKeywordRequest = new SearchRequest("movie_ngram");
             SearchSourceBuilder searchKeywordSourceBuilder = new SearchSourceBuilder();
             searchKeywordSourceBuilder.query(QueryBuilders.matchQuery("keywords.name", query))
                     .from(pageNum * PAGESIZE)
-                    .size(PAGESIZE);;
+                    .size(PAGESIZE);
             searchKeywordRequest.source(searchKeywordSourceBuilder);
 
             org.elasticsearch.action.search.SearchResponse searchKeywordResponse =
