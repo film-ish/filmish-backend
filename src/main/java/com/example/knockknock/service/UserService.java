@@ -181,8 +181,11 @@ public class UserService {
 
     // 회원 정보 수정
     public ApiResponse updateUser(Long userId, UserRequest.Modify Modify) {
+        log.info("ServiceLayer 도달");
         MultipartFile imageFile = Modify.getImage();
+        log.info("입력된 imageFile = {}", imageFile);
         String nickname = Modify.getNickname();
+        log.info("입력된 nickname = {}", nickname);
         User userEntity = null;
 
         // 사용자 조회
