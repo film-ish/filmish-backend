@@ -10,6 +10,38 @@ import java.util.Map;
 
 @Data
 public class IndieResponse {
+
+    @Getter
+    @Builder
+    public static class DetailAll {
+        private Long id;
+        private String title;
+        private String plot;
+        private Date pubDate;
+        private int runningTime;
+        private float averageRating;
+        private String type;
+        private List<String> posters;
+        private List<Map<Long, String>> stillcuts;
+        private List<MakerResponse.Role> makers;
+
+        public static IndieResponse.DetailAll of(IndieMovie indieMovie, List<Map<Long, String>> stillcuts,
+                                                 List<MakerResponse.Role> makers, List<String> posters) {
+            return DetailAll.builder()
+                    .id(indieMovie.getId())
+                    .title(indieMovie.getTitle())
+                    .plot(indieMovie.getPlot())
+                    .pubDate(indieMovie.getPubdate())
+                    .runningTime(indieMovie.getRunningTime())
+                    .averageRating(indieMovie.getAverageRating())
+                    .type(indieMovie.getType())
+                    .posters(posters)
+                    .stillcuts(stillcuts)
+                    .makers(makers)
+                    .build();
+        }
+    }
+
     @Getter
     @Builder
     public static class Detail {
