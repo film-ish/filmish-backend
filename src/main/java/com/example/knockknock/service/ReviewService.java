@@ -7,6 +7,7 @@ import com.example.knockknock.entity.*;
 import com.example.knockknock.error.code.ErrorCode;
 import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -238,10 +239,18 @@ public class ReviewService {
 
     public ApiResponse listComment(Long reviewId, int pageNum, int pageSize){
         Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Direction.ASC, "createdAt"));
-        Long indieId = reviewRepository.findById(reviewId).get().getIndieMovie().getId();
-        Page<ReviewCommentResponse.Detail> commentList = reviewCommentRepository.findByReviewId(reviewId, pageable)
+        Long indieId;
+        try {
+            indieId = reviewRepository.findById(reviewId)
+                    .orElseThrow(() -> new EntityNotFoundException("리뷰가 존재하지 않습니다."))
+                    .getIndieMovie().getId();
+        } catch (EntityNotFoundException e) {
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, e.getMessage());
+        }
+        Page<ReviewComment> page = reviewCommentRepository.findByReviewId(reviewId, pageable);
+        List<ReviewCommentResponse.Detail> commentList = page.getContent().stream()
+                .filter(comment -> comment.getParentComment() == null)
                 .map(reviewComment -> {
-                    if(reviewComment.getParentComment() != null) return null;    // null이 아니라 pass 했으면 좋겠음
                     User writer = reviewComment.getUser();
                     Optional<MakerMovie> makerMovie = makerMovieRepository.findByMakerIdAndUserId(writer.getId(), indieId);
                     MakerMovie makerMovie1 = null;
@@ -269,7 +278,7 @@ public class ReviewService {
                                 }).toList();
                     }
                     return ReviewCommentResponse.Detail.of(reviewComment, writer, makerMovie1, subCommentList);
-                });
+                }).toList();
         return ApiSuccessResponse.response(ResponseCode.Ok, "댓글 목록을 성공적으로 조회하였습니다.", commentList);
     }
 }

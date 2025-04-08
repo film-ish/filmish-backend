@@ -29,7 +29,7 @@ public class ReviewCommentResponse {
                     .writer(writer.getNickname())
                     .writerImage(writer.getHeadImage())
                     .writerType(makerMovie != null ? makerMovie.getType().toString() : null)
-                    .content(reviewComment.getContent())
+                    .content(reviewComment.isSoftDeleted() ? "삭제된 댓글입니다." : reviewComment.getContent())
                     .subComments(comments)
                     .build();
         }

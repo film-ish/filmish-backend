@@ -23,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -86,13 +87,10 @@ public class QnaService {
         Page<QnaResponse.Detail> qnaPage = qnaRepository.findByMakerId(makerId, pageable)
                 .map(qna -> {
                     User writer = qna.getUser();
-                    List<QnaComment> qnaCommentList = null;
-                    List<QnaCommentResponse.Detail> qnaComments = null;
-                    Optional<List<QnaComment>> commentList = qnaCommentRepository.findByQnaId(qna.getId());
-                    if(!commentList.isEmpty()){
-                        qnaCommentList = commentList.get();
-                    }
-                    qnaComments = qnaCommentList.stream()
+                    List<QnaComment> allComments = qnaCommentRepository.findByQnaId(qna.getId())
+                            .orElse(Collections.emptyList());
+                    List<QnaCommentResponse.Detail> qnaComments = allComments.stream()
+                            .filter(comment -> comment.getParentComment() == null)
                             .map(qnaComment -> {
                                 User commentWriter = qnaComment.getUser();
                                 Optional<List<QnaComment>> subComments = qnaCommentRepository

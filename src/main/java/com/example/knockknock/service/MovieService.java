@@ -174,10 +174,16 @@ public class MovieService {
         return ApiSuccessResponse.response(ResponseCode.Created, "보고싶어요 등록이 완료되었습니다.", null);
     }
 
-    public ApiResponse genreMovies(Long genreId, int pageNum, int pageSize){
+    public ApiResponse genreMovies(Long genreId, int pageNum, int pageSize, CustomUserDetails userDetails){
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<IndieResponse.LikeDetail> moviePage = indieMovieRepository.findByGenreId(genreId, pageable)
                 .map(indieMovie -> {
+                    Boolean like = false;
+                    if(userId != null){
+                        like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId).isPresent();
+                    }
+
                     String poster = posterRepository.findByIndieId(indieMovie.getId())
                             .filter(posterList -> !posterList.isEmpty())
                             .map(posters -> posters.get(0).getPoster())
@@ -185,7 +191,7 @@ public class MovieService {
                     Optional<List<IndieGenre>> optGenres = indieGenreRepository.findByIndieId(indieMovie.getId());
                     List<String> genres = optGenres.isPresent() && !optGenres.get().isEmpty() ?
                             optGenres.get().stream().map(indieGenre -> indieGenre.getGenre().getName()).toList() : null;
-                    return IndieResponse.LikeDetail.of(indieMovie, poster, indieMovie.getAverageRating(), genres);
+                    return IndieResponse.LikeDetail.of(indieMovie, poster, indieMovie.getAverageRating(), genres, like);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", moviePage);
     }
