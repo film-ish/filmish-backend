@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class QnaController {
     private final QnaService qnaService;
 
-    @PostMapping("")
+    @PostMapping
     @Operation(summary = "QnA 등록", description = "QnA를 등록합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")

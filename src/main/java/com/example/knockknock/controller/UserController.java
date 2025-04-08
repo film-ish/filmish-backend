@@ -20,12 +20,12 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class UserController {
     private final UserService userService;
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "회원 가입", description = "회원 가입을 시도합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 가입됨")
     })
-    public ApiResponse join(@RequestBody UserRequest.Join request){
+    public ApiResponse join(@ModelAttribute UserRequest.Join request){
         return userService.join(request);
     }
 

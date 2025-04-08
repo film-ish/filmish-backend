@@ -15,7 +15,7 @@ public class UserRequest {
         private String password;
         private String nickname;
         private LocalDate birth;
-        private String image;
+        private MultipartFile image;
     }
 
     @Getter
