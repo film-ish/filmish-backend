@@ -84,8 +84,9 @@ public class MovieController {
     })
     public ApiResponse genreMovies(@PathVariable Long genreId,
                                    @RequestParam(name = "page") int pageNum,
-                                   @RequestParam(name = "size") int pageSize) {
-        return movieService.genreMovies(genreId, pageNum, pageSize);
+                                   @RequestParam(name = "size") int pageSize,
+                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return movieService.genreMovies(genreId, pageNum, pageSize, userDetails);
     }
 
     @GetMapping("/like-commercials")

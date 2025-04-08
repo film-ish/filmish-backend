@@ -1,5 +1,6 @@
 package com.example.knockknock.service;
 
+import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.response.*;
 import com.example.knockknock.entity.*;
 import com.example.knockknock.repository.*;
@@ -32,7 +33,9 @@ public class MainService {
      좋아요 개수 기준 영화 10개,
      평점 기준 영화 10개
      */
-    public ApiResponse mainProcess(){
+    public ApiResponse mainProcess(CustomUserDetails userDetails){
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+
         // 1. 조회수 기준 베스트 리뷰 3개
         List<Review> SortByViews = reviewRepository.findAll(Sort.by(Sort.Direction.DESC, "views"))
                 .stream()
@@ -67,6 +70,11 @@ public class MainService {
 
         List<IndieResponse.Approximate> orderByDate = latest.stream()
                 .map(indieMovie -> {
+                    Boolean like = false;
+                    if(userId != null){
+                        like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId).isPresent();
+                    }
+
                     // 평점 계산
                     List<Rate> rates = rateRepository.findAllByIndieId(indieMovie.getId())
                             .orElse(Collections.emptyList());
@@ -82,8 +90,8 @@ public class MainService {
                     if(!stillcuts.isEmpty()){
                         stillcut = stillcuts.get(0).getStillcut();
                     }
-                    return IndieResponse.Approximate.of(indieMovie, average, stillcut);
-                }).toList();
+                    return IndieResponse.Approximate.of(indieMovie, average, stillcut, like);
+                }).collect(Collectors.toList());
 
         // 3. 좋아요 개수 기준 영화 10개
         List<IndieMovie> allMovies = indieMovieRepository.findAll();
@@ -101,6 +109,11 @@ public class MainService {
                 .map(indieMovieIntegerPair -> {
                     IndieMovie movie = indieMovieIntegerPair.getLeft();
 
+                    Boolean like = false;
+                    if(userId != null){
+                        like = likeIndieRepository.findByIndieMovieIdAndUserId(movie.getId(), userId).isPresent();
+                    }
+
                     String image = null;
                     List<Poster> posters = posterRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
                     if(!posters.isEmpty()){
@@ -113,7 +126,7 @@ public class MainService {
                             .map(indieGenre -> {
                                 return indieGenre.getGenre().getName();
                             }).toList();
-                    return IndieResponse.LikeDetail.of(movie, image, indieMovieIntegerPair.getRight(), genres);
+                    return IndieResponse.LikeDetail.of(movie, image, indieMovieIntegerPair.getRight(), genres, like);
                 }).toList();
 
         /*
@@ -136,6 +149,11 @@ public class MainService {
                         image = posters.get(0).getPoster();
                     }
 
+                    Boolean like = false;
+                    if(userId != null){
+                        like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId).isPresent();
+                    }
+
                     // 평점 계산
                 /*
                     List<Rate> rates = rateRepository.findByIndieId(indieMovie.getId())
@@ -154,7 +172,7 @@ public class MainService {
                                 return indieGenre.getGenre().getName();
                             }).toList();
 
-                    return IndieResponse.LikeDetail.of(indieMovie, image, indieMovie.getAverageRating(), genres);
+                    return IndieResponse.LikeDetail.of(indieMovie, image, indieMovie.getAverageRating(), genres, like);
                 }).toList();
 
         MainResponse.AllList<Integer, Float> mainResponse = MainResponse.AllList.of(orderByViews, orderByDate, orderByLikes, orderByAvg);

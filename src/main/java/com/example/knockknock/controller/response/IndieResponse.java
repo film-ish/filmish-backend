@@ -51,8 +51,11 @@ public class IndieResponse {
         private T value;
         private List<String> genres;
 
+        @Builder.Default
+        private Boolean like = false;
+
         public static <T> LikeDetail<T> of(IndieMovie movie, String poster,
-                                    T value, List<String> genres){
+                                           T value, List<String> genres){
             return LikeDetail.<T>builder()
                     .id(movie.getId())
                     .title(movie.getTitle())
@@ -61,6 +64,20 @@ public class IndieResponse {
                     .runningTime(movie.getRunningTime())
                     .value(value)
                     .genres(genres)
+                    .build();
+        }
+
+        public static <T> LikeDetail<T> of(IndieMovie movie, String poster,
+                                    T value, List<String> genres, Boolean like){
+            return LikeDetail.<T>builder()
+                    .id(movie.getId())
+                    .title(movie.getTitle())
+                    .poster(poster)
+                    .pubDate(movie.getPubdate())
+                    .runningTime(movie.getRunningTime())
+                    .value(value)
+                    .genres(genres)
+                    .like(like!= null ? like : false)
                     .build();
         }
 
@@ -88,13 +105,15 @@ public class IndieResponse {
         private String title;
         private float average;
         private String stillcut;
+        private Boolean like;
 
-        public static Approximate of(IndieMovie movie, float average, String stillcut){
+        public static Approximate of(IndieMovie movie, float average, String stillcut, boolean like){
             return Approximate.builder()
                     .id(movie.getId())
                     .title(movie.getTitle())
                     .average(average)
                     .stillcut(stillcut)
+                    .like(like)
                     .build();
         }
     }

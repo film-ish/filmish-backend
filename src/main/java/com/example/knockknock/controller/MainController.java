@@ -1,11 +1,13 @@
 package com.example.knockknock.controller;
 
+import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.response.ApiResponse;
 import com.example.knockknock.service.MainService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,7 +21,7 @@ public class MainController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse mainProcess(){
-        return mainService.mainProcess();
+    public ApiResponse mainProcess(@AuthenticationPrincipal CustomUserDetails userDetails){
+        return mainService.mainProcess(userDetails);
     }
 }
