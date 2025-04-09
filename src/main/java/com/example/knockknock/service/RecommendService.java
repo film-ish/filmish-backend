@@ -35,6 +35,7 @@ public class RecommendService {
     private final PosterRepository posterRepository;
     private final RateRepository rateRepository;
     private final IndieMovieRepository indieMovieRepository;
+    private final StillcutRepository stillcutRepository;
 
     public ApiResponse recommendProcess(int num, CustomUserDetails userDetails){
         JsonNode recommendMovies = null;
@@ -102,8 +103,27 @@ public class RecommendService {
                 .map(result -> (Long) result[0])
                 .toList();
 
-        // 포스터 조회
-        Map<Long, String> posterMap = fetchPosterMap(movieIds);
+        // 각 영화의 첫 번째 포스터 조회
+        Map<Long, String> moviePosterMap = new HashMap<>();
+        if (!movieIds.isEmpty()) {
+            List<Object[]> posters = posterRepository.findFirstPosterByMovieIds(movieIds);
+            for (Object[] poster : posters) {
+                Long movieId = (Long) poster[0];
+                String posterUrl = (String) poster[1];
+                moviePosterMap.put(movieId, posterUrl);
+            }
+        }
+
+        Map<Long, String> movieStillcutMap = new HashMap<>();
+        if (!movieIds.isEmpty()) {
+            // 스틸컷을 위한 유사한 쿼리 사용
+            List<Object[]> stillcuts = stillcutRepository.findFirstStillcutByMovieIds(movieIds);
+            for (Object[] stillcut : stillcuts) {
+                Long movieId = (Long) stillcut[0];
+                String stillcutUrl = (String) stillcut[1];
+                movieStillcutMap.put(movieId, stillcutUrl);
+            }
+        }
 
         // 영화 정보 변환
         List<RateResponse.MovieListByRating> responseList = movieRatings.getContent().stream()
@@ -111,37 +131,42 @@ public class RecommendService {
                     Long movieId = (Long) result[0];
                     float rating = ((Number) result[1]).floatValue();
 
-                    // 영화 정보 조회 - 없으면 null 반환
+                    // 영화 정보 조회
                     Optional<IndieMovie> movieOpt = indieMovieRepository.findById(movieId);
                     if (movieOpt.isEmpty()) {
                         log.error("영화를 찾을 수 없습니다: {}", movieId);
-                        return null;
+                        return null; // 영화 없으면 null 반환 (나중에 필터링)
                     }
 
-                    String posterUrl = posterMap.getOrDefault(movieId, "default_poster.jpg");
+                    IndieMovie movie = movieOpt.get(); // <-- FIX 1: Optional에서 IndieMovie 객체 추출
 
-                    return RateResponse.MovieListByRating.builder()
-                            .movieId(movieId)
-                            .title(movieOpt.get().getTitle())
-                            .posterUrl(posterUrl)
-                            .averageRating(rating)
-                            .build();
+                    String posterUrl = moviePosterMap.get(movieId);
+                    String stillcutUrl = movieStillcutMap.get(movieId);
+
+                    // 포스터 또는 스틸컷 URL 선택 (String 타입)
+                    String imageUrl = posterUrl != null ? posterUrl : stillcutUrl;
+
+                    // Poster 객체 생성 로직 제거 (of 메소드가 String을 받는다고 가정)
+
+                    // of 메소드에 IndieMovie 객체와 imageUrl(String) 전달
+                    return RateResponse.MovieListByRating.of(movie, rating, imageUrl); // <-- FIX 2: Poster 객체 대신 imageUrl(String) 전달
                 })
-                .filter(Objects::nonNull) // null 값 필터링
+                .filter(Objects::nonNull) // <-- FIX 3: 영화를 찾지 못해 null이 된 항목 제거
                 .collect(Collectors.toList());
 
         // 추천 영화 우선 정렬
         sortByRecommendation(responseList, recommendedMovieIds);
 
-        // 페이지 객체 생성
+        // 페이지 객체 생성 (주의: 필터링 후 size가 달라질 수 있으므로 movieRatings.getTotalElements() 사용)
         Page<RateResponse.MovieListByRating> resultPage = new PageImpl<>(
-                responseList, pageable, responseList.size());
+                responseList, pageable, movieRatings.getTotalElements()); // <-- FIX 4: 전체 개수는 필터링 전 기준으로
 
         return ApiSuccessResponse.response(
                 ResponseCode.Ok,
                 "평점별 영화 목록을 성공적으로 조회했습니다.",
                 resultPage);
     }
+
 
     private List<Long> extractRecommendedMovieIds(ApiResponse recommendResult) {
         if (!(recommendResult instanceof ApiSuccessResponse)) {
@@ -174,16 +199,6 @@ public class RecommendService {
         }
 
         return movieIds;
-    }
-
-    private Map<Long, String> fetchPosterMap(List<Long> movieIds) {
-        return posterRepository.findFirstPosterByMovieIds(movieIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        tuple -> (Long) tuple[0],
-                        tuple -> tuple[1] != null ? (String) tuple[1] : "default_poster.jpg",
-                        (existing, replacement) -> existing
-                ));
     }
 
     private void sortByRecommendation(List<RateResponse.MovieListByRating> movies, List<Long> recommendedIds) {
