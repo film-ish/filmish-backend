@@ -128,6 +128,11 @@ public class MakerService {
                 .map(mm -> mm.getMaker().getId())
                 .collect(Collectors.toSet());
 
+        List<MakerMovie> actorAndDirectorMovies = makerMovieRepository.findByMakerNameContainingAndType(name, Type.ACTORANDDIRECTOR);
+        Set<Long> actorAndDirectorIds = actorAndDirectorMovies.stream()
+                .map(mm -> mm.getMaker().getId())
+                .collect(Collectors.toSet());
+
         Set<Long> bothIds = new HashSet<>(directorIds);
         bothIds.retainAll(actorIds);
 
@@ -181,6 +186,28 @@ public class MakerService {
             responseData.put("actors", actors);
         } else {
             responseData.put("actors", null);
+        }
+
+        if (!actorAndDirectorIds.isEmpty()){
+            List<Map<String, Object>> actoranddirectors = actorAndDirectorMovies.stream()
+                    .filter(mm -> actorAndDirectorIds.contains(mm.getMaker().getId()))
+                    .map(mm -> {
+                        Maker maker = mm.getMaker();
+                        UserMaker userMaker = userMakerRepository.findUserMakerByMakerId(maker.getId());
+                        String email = (userMaker != null && userMaker.getUser() != null)
+                                ? userMaker.getUser().getEmail()
+                                : null;
+                        Map<String, Object> info = new HashMap<>();
+                        info.put("actoranddirector_id", maker.getId());
+                        info.put("name", maker.getName());
+                        info.put("email", email);
+                        return info;
+                    })
+                    .distinct()
+                    .collect(Collectors.toList());
+            responseData.put("actoranddirectors", actoranddirectors);
+        } else {
+            responseData.put("actoranddirectors", null);
         }
 
         if (!bothIds.isEmpty()) {
