@@ -62,7 +62,7 @@ public class UserService {
         String password = join.getPassword();
         String nickname = join.getNickname();
         LocalDate birth = join.getBirth();
-        MultipartFile imageFile = join.getImage();
+        MultipartFile imageFile = (join.getImage() == null || join.getImage().isEmpty()) ? null : join.getImage();
 
         log.info("joinProcess(), userEmail = " + userEmail);
 
@@ -77,13 +77,21 @@ public class UserService {
 
         User saved = userRepository.save(data);
 
-        String imagePath = saveImage(saved.getId(), imageFile);
-        String compressPath = saveCompressImage(saved.getId(), imageFile);
+        String imagePath = null;
+        String compressPath = null;
 
-        data.setImage(imagePath);
-        data.setHeadImage(compressPath);
+        if (imageFile != null) {
+            try {
+                imagePath = saveImage(saved.getId(), imageFile);
+                compressPath = saveCompressImage(saved.getId(), imageFile);
+                saved.setImage(imagePath);
+                saved.setHeadImage(compressPath);
+                userRepository.save(saved);
+            } catch (Exception e) {
+                log.error("이미지 저장 중 오류 발생", e);
+            }
+        }
 
-        userRepository.save(saved);
 
         return ApiSuccessResponse.response(ResponseCode.Created, "Join request success!", null);
     }
@@ -243,8 +251,14 @@ public class UserService {
     }
 
     private String saveImage(Long userId, MultipartFile imageFile){
-        // 원본 이미지 S3에 업로드
-        String originalFileName = imageFile.getOriginalFilename();
+        String originalFileName = null;
+        try {
+            // 원본 이미지 S3에 업로드
+            originalFileName = imageFile.getOriginalFilename();
+        }catch (Exception e){
+            log.warn("originalFileName이 null이거나 확장자가 없습니다.");
+            return null;
+        }
         String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
         String originalKey = "images/original/" + userId + "_" + System.currentTimeMillis() + fileExtension;
         String imagePath = null;
