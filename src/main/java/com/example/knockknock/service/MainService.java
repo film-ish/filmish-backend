@@ -43,10 +43,13 @@ public class MainService {
                 .collect(Collectors.toList());
 
         List<ReviewResponse.Detail> orderByViews = SortByViews.stream()
+                .filter(review -> {
+                    Optional<User> user = userRepository.findById(review.getUser().getId());
+                    return user.isPresent() && user.get().getActive();  // 탈퇴한 사용자는 제외
+                })
                 .map(review -> {
                     Optional<User> userEntity = userRepository.findById(review.getUser().getId());
-                    //TODO
-                    // 만약 작성자가 조회되지 않는 상황이라면 예외 처리를 할 것인가, 말 것인가?
+
                     User writer = userEntity.isEmpty() ? null : userEntity.get();
                     Optional<List<ReviewImage>> reviewImageList = reviewImageRepository.findByReviewId(review.getId());
                     List<ReviewImage> reviewImages = reviewImageList.isEmpty() ? null : reviewImageList.get();
@@ -69,6 +72,11 @@ public class MainService {
                 .collect(Collectors.toList());
 
         List<IndieResponse.Approximate> orderByDate = latest.stream()
+                .filter(indieMovie -> {                 // 스틸컷 없는 영화는 필터링
+                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(indieMovie.getId())
+                            .orElse(Collections.emptyList());
+                    return !stillcuts.isEmpty();
+                })
                 .map(indieMovie -> {
                     Boolean like = false;
                     if(userId != null){
