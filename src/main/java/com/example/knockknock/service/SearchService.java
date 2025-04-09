@@ -32,6 +32,7 @@ public class SearchService {
     private final IndieMovieRepository indieMovieRepository;
     private final MakerRepository makerRepository;
     private final LikeIndieRepository likeIndieRepository;
+    private final StillcutRepository stillcutRepository;
     private final TokenProvider tokenProvider;
     private final RestHighLevelClient restHighLevelClient;
     private static final int PAGESIZE = 20;
@@ -83,6 +84,15 @@ public class SearchService {
                         .filter(list -> !list.isEmpty())
                         .map(list -> list.get(0).getPoster())
                         .orElse(null);
+
+                if (poster == null){
+                    // 스틸컷 주소
+                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(Long.parseLong(movieId)).orElse(Collections.emptyList());
+                    String stillcut = null;
+                    if(!stillcuts.isEmpty()){
+                        poster = stillcuts.get(0).getStillcut();
+                    }
+                }
 
                 boolean like = false;
 
@@ -233,12 +243,21 @@ public class SearchService {
                             .map(posters -> posters.get(0).getPoster())
                             .orElse(null);
 
-                    boolean like = false;
+                    if(poster == null){
+                        // 스틸컷 주소
+                        List<Stillcut> stillcuts = stillcutRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
+                        String stillcut = null;
+                        if(!stillcuts.isEmpty()){
+                            poster = stillcuts.get(0).getStillcut();
+                        }
+                    }
 
+                    boolean like = false;
                     if (userId != null){
                         Optional<LikeIndie> optLikeIndie = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId);
                         like = optLikeIndie.isPresent() ? true : false;
                     }
+
                     Optional<List<IndieGenre>> optGenres = indieGenreRepository.findByIndieId(indieMovie.getId());
                     List<String> genres = optGenres.isPresent() && !optGenres.get().isEmpty() ?
                             optGenres.get().stream().map(indieGenre -> indieGenre.getGenre().getName()).toList() : null;
@@ -294,12 +313,21 @@ public class SearchService {
                             .map(posters -> posters.get(0).getPoster())
                             .orElse(null);
 
-                    boolean like = false;
+                    if(poster == null){
+                        // 스틸컷 주소
+                        List<Stillcut> stillcuts = stillcutRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
+                        String stillcut = null;
+                        if(!stillcuts.isEmpty()){
+                            poster = stillcuts.get(0).getStillcut();
+                        }
+                    }
 
+                    boolean like = false;
                     if (userId != null){
                         Optional<LikeIndie> optLikeIndie = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId);
                         like = optLikeIndie.isPresent() ? true : false;
                     }
+
                     Optional<List<IndieGenre>> optGenres = indieGenreRepository.findByIndieId(indieMovie.getId());
                     List<String> genres = optGenres.isPresent() && !optGenres.get().isEmpty() ?
                             optGenres.get().stream().map(indieGenre -> indieGenre.getGenre().getName()).toList() : null;
