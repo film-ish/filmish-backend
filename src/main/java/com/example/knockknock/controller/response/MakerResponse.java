@@ -132,4 +132,36 @@ public class MakerResponse {
         }
     }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class SimpleFilmography { // <<<--- public static 추가!
+        private Long movieId;
+        private String movieName;
+
+        public static SimpleFilmography from(IndieMovie movie) { // 접근 제어자 public 추가 (권장)
+            return SimpleFilmography.builder().movieId(movie.getId()).movieName(movie.getTitle()).build();
+        }
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class SearchResult {
+        private Long id;
+        private Long userId;
+        private String name;
+        private String image;
+        private Long qnaCount;
+        private Long movieCount;
+        private List<SimpleFilmography> filmography;
+
+        public static SearchResult of(Maker maker, Long userId, Long qnaCount, Long movieCount, List<SimpleFilmography> filmography) { // 접근 제어자 public 추가 (권장)
+            return SearchResult.builder().id(maker.getId()).userId(userId).name(maker.getName()).image(maker.getThumbnailImage()).qnaCount(qnaCount).movieCount(movieCount).filmography(filmography).build();
+        }
+    }
 }

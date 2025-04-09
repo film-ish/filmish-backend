@@ -161,124 +161,56 @@ public class MakerService {
 
     public ApiResponse searchMaker(String name) {
         List<MakerMovie> directorMovies = makerMovieRepository.findByMakerNameContainingAndType(name, Type.DIRECTOR);
-        Set<Long> directorIds = directorMovies.stream()
-                .map(mm -> mm.getMaker().getId())
-                .collect(Collectors.toSet());
-
         List<MakerMovie> actorMovies = makerMovieRepository.findByMakerNameContainingAndType(name, Type.ACTOR);
-        Set<Long> actorIds = actorMovies.stream()
-                .map(mm -> mm.getMaker().getId())
-                .collect(Collectors.toSet());
-
         List<MakerMovie> actorAndDirectorMovies = makerMovieRepository.findByMakerNameContainingAndType(name, Type.ACTORANDDIRECTOR);
-        Set<Long> actorAndDirectorIds = actorAndDirectorMovies.stream()
+
+        // 2. 모든 관련 MakerMovie를 하나로 합침
+        List<MakerMovie> allRelevantMakerMovies = new ArrayList<>();
+        allRelevantMakerMovies.addAll(directorMovies);
+        allRelevantMakerMovies.addAll(actorMovies);
+        allRelevantMakerMovies.addAll(actorAndDirectorMovies);
+
+        // 3. 관련된 모든 고유 Maker ID 추출
+        Set<Long> allMakerIds = allRelevantMakerMovies.stream()
                 .map(mm -> mm.getMaker().getId())
                 .collect(Collectors.toSet());
 
-        Set<Long> bothIds = new HashSet<>(directorIds);
-        bothIds.retainAll(actorIds);
+        // 4. 각 Maker ID별로 *새로운* MakerSearchResult 정보 생성
+        List<MakerResponse.SearchResult> searchResults = allMakerIds.stream()
+                .map(makerId -> {
+                    Maker maker = makerRepository.findById(makerId).orElse(null);
+                    if (maker == null) return null;
 
-        directorIds.removeAll(bothIds);
+                    UserMaker userMaker = userMakerRepository.findUserMakerByMakerId(makerId);
+                    Long userId = (userMaker != null && userMaker.getUser() != null) ? userMaker.getUser().getId() : null;
+                    Long qnaCount = qnaRepository.countByMakerId(makerId);
+                    List<MakerMovie> moviesForThisMaker = allRelevantMakerMovies.stream()
+                            .filter(mm -> mm.getMaker().getId().equals(makerId))
+                            .toList();
 
-        actorIds.removeAll(bothIds);
+                    // 고유 영화 목록 및 개수 계산 (기존과 동일)
+                    Set<Long> uniqueMovieIds = new HashSet<>();
+                    List<MakerResponse.SimpleFilmography> simpleFilmographies = moviesForThisMaker.stream()
+                            .map(MakerMovie::getIndieMovie)
+                            .filter(Objects::nonNull) // 혹시 모를 null IndieMovie 방지
+                            .filter(movie -> uniqueMovieIds.add(movie.getId())) // 중복 제거하며 Set에 추가
+                            .map(MakerResponse.SimpleFilmography::from) // SimpleFilmography DTO 사용
+                            .toList();
 
+                    Long movieCount = (long) uniqueMovieIds.size();
+
+                    return MakerResponse.SearchResult.of(maker, userId, qnaCount, movieCount, simpleFilmographies);
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+// 5. 최종 응답 생성 (기존과 동일)
         Map<String, Object> responseData = new HashMap<>();
+        responseData.put("makers", searchResults); // 결과를 "makers" 키에 담음
 
-        if (!directorIds.isEmpty()) {
-            List<Map<String, Object>> directors = directorMovies.stream()
-                    .filter(mm -> directorIds.contains(mm.getMaker().getId()))
-                    .map(mm -> {
-                        Maker maker = mm.getMaker();
-                        UserMaker userMaker = userMakerRepository.findUserMakerByMakerId(maker.getId());
-                        String email = (userMaker != null && userMaker.getUser() != null)
-                                ? userMaker.getUser().getEmail()
-                                : null;
-
-                        Map<String, Object> info = new HashMap<>();
-                        info.put("director_id", maker.getId());
-                        info.put("name", maker.getName());
-                        info.put("email", email);
-                        return info;
-                    })
-                    .distinct()
-                    .collect(Collectors.toList());
-            responseData.put("directors", directors);
-        } else {
-            responseData.put("directors", null);
-        }
-
-        if (!actorIds.isEmpty()) {
-            List<Map<String, Object>> actors = actorMovies.stream()
-                    .filter(mm -> actorIds.contains(mm.getMaker().getId()))
-                    .map(mm -> {
-                        Maker maker = mm.getMaker();
-                        UserMaker userMaker = userMakerRepository.findUserMakerByMakerId(maker.getId());
-                        String email = (userMaker != null && userMaker.getUser() != null)
-                                ? userMaker.getUser().getEmail()
-                                : null;
-
-                        Map<String, Object> info = new HashMap<>();
-                        info.put("actor_id", maker.getId());
-                        info.put("name", maker.getName());
-                        info.put("email", email);
-                        return info;
-                    })
-                    .distinct()
-                    .collect(Collectors.toList());
-            responseData.put("actors", actors);
-        } else {
-            responseData.put("actors", null);
-        }
-
-        if (!actorAndDirectorIds.isEmpty()){
-            List<Map<String, Object>> actoranddirectors = actorAndDirectorMovies.stream()
-                    .filter(mm -> actorAndDirectorIds.contains(mm.getMaker().getId()))
-                    .map(mm -> {
-                        Maker maker = mm.getMaker();
-                        UserMaker userMaker = userMakerRepository.findUserMakerByMakerId(maker.getId());
-                        String email = (userMaker != null && userMaker.getUser() != null)
-                                ? userMaker.getUser().getEmail()
-                                : null;
-                        Map<String, Object> info = new HashMap<>();
-                        info.put("actoranddirector_id", maker.getId());
-                        info.put("name", maker.getName());
-                        info.put("email", email);
-                        return info;
-                    })
-                    .distinct()
-                    .collect(Collectors.toList());
-            responseData.put("actoranddirectors", actoranddirectors);
-        } else {
-            responseData.put("actoranddirectors", null);
-        }
-
-        if (!bothIds.isEmpty()) {
-            List<Map<String, Object>> both = directorMovies.stream()
-                    .filter(mm -> bothIds.contains(mm.getMaker().getId()))
-                    .map(mm -> {
-                        Maker maker = mm.getMaker();
-                        UserMaker userMaker = userMakerRepository.findUserMakerByMakerId(maker.getId());
-                        String email = (userMaker != null && userMaker.getUser() != null)
-                                ? userMaker.getUser().getEmail()
-                                : null;
-
-                        Map<String, Object> info = new HashMap<>();
-                        info.put("maker_id", maker.getId());
-                        info.put("name", maker.getName());
-                        info.put("email", email);
-                        info.put("role", "ACTORANDDIRECTOR");
-                        return info;
-                    })
-                    .distinct()
-                    .collect(Collectors.toList());
-            responseData.put("both", both);
-        } else {
-            responseData.put("both", null);
-        }
-
+        // 실제 사용하는 ResponseCode와 메시지로 변경하세요
         return ApiSuccessResponse.response(ResponseCode.Ok, "검색이 완료되었습니다.", responseData);
     }
-
 
 
 }
