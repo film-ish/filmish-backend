@@ -31,6 +31,7 @@ public class MypageService {
     private final QnaRepository qnaRepository;
     private final QnaCommentRepository qnaCommentRepository;
     private final ReviewCommentRepository reviewCommentRepository;
+    private final StillcutRepository stillcutRepository;
 
     public ApiResponse listLikeIndie(Long userId, int pageNum, int pageSize, CustomUserDetails userDetails) {
         if (userId != userDetails.getUserId()){
@@ -51,6 +52,13 @@ public class MypageService {
 
                     String posterUrl = posters.isEmpty() ? null : posters.get(0).getPoster();
 
+                    // 스틸컷 주소
+                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
+                    String stillcut = null;
+                    if(!stillcuts.isEmpty()){
+                        stillcut = stillcuts.get(0).getStillcut();
+                    }
+
                     // 평점 계산
                     List<Rate> rates = rateRepository.findAllByIndieId(movieId)
                             .orElse(Collections.emptyList());
@@ -60,7 +68,7 @@ public class MypageService {
                             .average()                   // 평균 계산 (OptionalDouble 반환)
                             .orElse(0.0);         // 평균 값 없으면 0.0 반환
 
-                    return IndieResponse.LikeDetail.of(movie, posterUrl, average, categories);
+                    return IndieResponse.LikeDetail.of(movie, posterUrl, stillcut, average, categories, true);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", likePage);
     }

@@ -78,6 +78,7 @@ public class IndieResponse {
         private Long id;
         private String title;
         private String poster;
+        private String stillcut;
         private Date pubDate;
         private int runningTime;
         private T value;
@@ -99,12 +100,13 @@ public class IndieResponse {
                     .build();
         }
 
-        public static <T> LikeDetail<T> of(IndieMovie movie, String poster,
+        public static <T> LikeDetail<T> of(IndieMovie movie, String poster, String stillcut,
                                     T value, List<String> genres, Boolean like){
             return LikeDetail.<T>builder()
                     .id(movie.getId())
                     .title(movie.getTitle())
                     .poster(poster)
+                    .stillcut(stillcut)
                     .pubDate(movie.getPubdate())
                     .runningTime(movie.getRunningTime())
                     .value(value)
