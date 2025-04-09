@@ -73,18 +73,20 @@ public class MovieService {
     }
 
     public ApiResponse movieDetail(Long movieId, HttpServletRequest request){
-        String accessToken = request.getHeader("access");
-        Long userId = null;
-
-        if (accessToken != null) {
-            String userEmail = tokenProvider.getUserEmail(accessToken);
-            User user = userRepository.findByEmail(userEmail).orElse(null);
-            userId = user != null ? user.getId() : null;
-        }
-
         Optional<IndieMovie> indieMovie = indieMovieRepository.findById(movieId);
         if (indieMovie.isEmpty()) {
             return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "조회한 영화가 존재하지 않습니다.");
+        }
+
+        String accessToken = request.getHeader("access");
+        Boolean like = false;
+        if (accessToken != null) {
+            String userEmail = tokenProvider.getUserEmail(accessToken);
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            final Long userId = user != null ? user.getId() : null;
+            like = userId != null && indieMovie
+                    .map(movie -> likeIndieRepository.findByIndieMovieIdAndUserId(movie.getId(), userId).isPresent())
+                    .orElse(false);
         }
 
         List<String> stillcuts = null;
@@ -94,11 +96,6 @@ public class MovieService {
                             .stream()
                             .map(Stillcut::getStillcut)
                             .collect(Collectors.toList());
-        }
-
-        Boolean like = false;
-        if(userId != null){
-            like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.get().getId(), userId).isPresent();
         }
 
         List<Maker> staff = null;
