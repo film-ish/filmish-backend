@@ -63,7 +63,7 @@ springdoc:
   use-fqn: true
 
 fastapi:
-  url: http://algorithm:8000/algorithm/v1/woorecommendations/recommendations
+  url: http://j12d207.p.ssafy.io:8000/algorithm/v1/woorecommendations/recommendations
 
 
 server:

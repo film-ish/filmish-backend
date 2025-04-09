@@ -4,6 +4,7 @@ import com.example.knockknock.entity.QnaComment;
 import com.example.knockknock.entity.User;
 import lombok.*;
 
+import java.time.Instant;
 import java.util.List;
 
 public class QnaCommentResponse {
@@ -17,6 +18,8 @@ public class QnaCommentResponse {
         private String writer;
         private String writerImage;
         private String content;
+        private Instant createdAt;
+        private Instant updatedAt;
         private List<Detail> subComments;
 
         public static Detail of(QnaComment qnaComment,
@@ -27,6 +30,8 @@ public class QnaCommentResponse {
                     .writerImage(writer.getHeadImage())
                     .content(qnaComment.isSoftDeleted() ? "삭제된 댓글입니다." : qnaComment.getContent())
                     .subComments(comments)
+                    .createdAt(qnaComment.getCreatedAt())
+                    .updatedAt(qnaComment.getUpdatedAt())
                     .build();
         }
     }
