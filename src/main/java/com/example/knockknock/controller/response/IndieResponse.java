@@ -21,11 +21,12 @@ public class IndieResponse {
         private int runningTime;
         private float averageRating;
         private String type;
+        private boolean like;
         private List<String> posters;
         private List<String> stillcuts;
         private List<MakerResponse.Role> makers;
 
-        public static IndieResponse.DetailAll of(IndieMovie indieMovie, List<String> stillcuts,
+        public static IndieResponse.DetailAll of(IndieMovie indieMovie, boolean like, List<String> stillcuts,
                                                  List<MakerResponse.Role> makers, List<String> posters) {
             return DetailAll.builder()
                     .id(indieMovie.getId())
@@ -35,6 +36,7 @@ public class IndieResponse {
                     .runningTime(indieMovie.getRunningTime())
                     .averageRating(indieMovie.getAverageRating())
                     .type(indieMovie.getType())
+                    .like(like)
                     .posters(posters)
                     .stillcuts(stillcuts)
                     .makers(makers)

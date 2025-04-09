@@ -7,8 +7,10 @@ import com.example.knockknock.service.MovieService;
 import com.example.knockknock.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,13 +32,13 @@ public class MovieController {
         return movieService.likeIndie(request, userDetails);
     }
 
-    @DeleteMapping("/likes/{likeId}")
+    @DeleteMapping("/likes/{indieId}")
     @Operation(summary = "보고싶어요 삭제", description = "독립 영화 보고싶어요를 삭제합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 삭제함")
     })
-    public ApiResponse unlikeIndie(@PathVariable Long likeId){
-        return movieService.unlikeIndie(likeId);
+    public ApiResponse unlikeIndie(@PathVariable Long indieId, @AuthenticationPrincipal CustomUserDetails userDetails){
+        return movieService.unlikeIndie(indieId, userDetails);
     }
 
     @GetMapping("/{movieId}")
@@ -44,8 +46,8 @@ public class MovieController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회함")
     })
-    public ApiResponse movieInfo(@PathVariable Long movieId){
-        return movieService.movieDetail(movieId);
+    public ApiResponse movieInfo(@PathVariable Long movieId, HttpServletRequest request){
+        return movieService.movieDetail(movieId, request);
     }
 
     @GetMapping("{movieId}/reviews")

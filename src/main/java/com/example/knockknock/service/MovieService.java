@@ -6,13 +6,16 @@ import com.example.knockknock.controller.response.*;
 import com.example.knockknock.entity.*;
 import com.example.knockknock.error.code.ErrorCode;
 import com.example.knockknock.error.response.ApiErrorResponse;
+import com.example.knockknock.global.config.jwt.TokenProvider;
 import com.example.knockknock.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -32,6 +35,7 @@ public class MovieService {
     private final LikeCommercialRepository likeCommercialRepository;
     private final IndieGenreRepository indieGenreRepository;
     private final PosterRepository posterRepository;
+    private final TokenProvider tokenProvider;
 
     public ApiResponse likeIndie(MovieRequest.LikeIndie request, CustomUserDetails customUserDetails){
         Long userId = customUserDetails.getUserId();
@@ -56,8 +60,9 @@ public class MovieService {
         return ApiSuccessResponse.response(ResponseCode.Created, "보고싶어요 등록이 완료되었습니다.", null);
     }
 
-    public ApiResponse unlikeIndie(Long likeId){
-        Optional<LikeIndie> likedIndie = likeIndieRepository.findById((likeId));
+    public ApiResponse unlikeIndie(Long indieId, CustomUserDetails userDetails){
+        Long userId = userDetails.getUserId();
+        Optional<LikeIndie> likedIndie = likeIndieRepository.findByIndieMovieIdAndUserId(indieId, userId);
         if (likedIndie.isEmpty()) {
             return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "등록된 보고싶어요 내역이 없습니다.");
         }
@@ -67,7 +72,16 @@ public class MovieService {
         return ApiSuccessResponse.response(ResponseCode.Ok, "보고싶어요 삭제가 완료되었습니다.", null);
     }
 
-    public ApiResponse movieDetail(Long movieId){
+    public ApiResponse movieDetail(Long movieId, HttpServletRequest request){
+        String accessToken = request.getHeader("access");
+        Long userId = null;
+
+        if (accessToken != null) {
+            String userEmail = tokenProvider.getUserEmail(accessToken);
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            userId = user != null ? user.getId() : null;
+        }
+
         Optional<IndieMovie> indieMovie = indieMovieRepository.findById(movieId);
         if (indieMovie.isEmpty()) {
             return ApiErrorResponse.of(ErrorCode.NOT_FOUND, "조회한 영화가 존재하지 않습니다.");
@@ -80,6 +94,11 @@ public class MovieService {
                             .stream()
                             .map(Stillcut::getStillcut)
                             .collect(Collectors.toList());
+        }
+
+        Boolean like = false;
+        if(userId != null){
+            like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.get().getId(), userId).isPresent();
         }
 
         List<Maker> staff = null;
@@ -116,7 +135,7 @@ public class MovieService {
         }
 
         log.info("영화 조회가 완료되었습니다.");
-        IndieResponse.DetailAll result = IndieResponse.DetailAll.of(indieMovie.get(), stillcuts, roles, images);
+        IndieResponse.DetailAll result = IndieResponse.DetailAll.of(indieMovie.get(), like, stillcuts, roles, images);
         return ApiSuccessResponse.response(ResponseCode.Ok, "영화 조회가 완료되었습니다.", result);
     }
 
