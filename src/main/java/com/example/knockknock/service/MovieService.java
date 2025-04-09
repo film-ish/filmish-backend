@@ -191,10 +191,16 @@ public class MovieService {
                             .filter(posterList -> !posterList.isEmpty())
                             .map(posters -> posters.get(0).getPoster())
                             .orElse(null);
+                    // 스틸컷 주소
+                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
+                    String stillcut = null;
+                    if(!stillcuts.isEmpty()){
+                        stillcut = stillcuts.get(0).getStillcut();
+                    }
                     Optional<List<IndieGenre>> optGenres = indieGenreRepository.findByIndieId(indieMovie.getId());
                     List<String> genres = optGenres.isPresent() && !optGenres.get().isEmpty() ?
                             optGenres.get().stream().map(indieGenre -> indieGenre.getGenre().getName()).toList() : null;
-                    return IndieResponse.LikeDetail.of(indieMovie, poster, indieMovie.getAverageRating(), genres, like);
+                    return IndieResponse.LikeDetail.of(indieMovie, poster, stillcut, indieMovie.getAverageRating(), genres, like);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", moviePage);
     }

@@ -126,7 +126,15 @@ public class MainService {
                             .map(indieGenre -> {
                                 return indieGenre.getGenre().getName();
                             }).toList();
-                    return IndieResponse.LikeDetail.of(movie, image, indieMovieIntegerPair.getRight(), genres, like);
+
+                    // 스틸컷 주소
+                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
+                    String stillcut = null;
+                    if(!stillcuts.isEmpty()){
+                        stillcut = stillcuts.get(0).getStillcut();
+                    }
+
+                    return IndieResponse.LikeDetail.of(movie, image, stillcut, indieMovieIntegerPair.getRight(), genres, like);
                 }).toList();
 
         /*
@@ -165,6 +173,13 @@ public class MainService {
                             .orElse(0.0);         // 평균 값 없으면 0.0 반환
                 */
 
+                    // 스틸컷 주소
+                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
+                    String stillcut = null;
+                    if(!stillcuts.isEmpty()){
+                        stillcut = stillcuts.get(0).getStillcut();
+                    }
+
                     // 장르 데이터
                     List<IndieGenre> genreList = indieGenreRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
                     List<String> genres = genreList.stream()
@@ -172,7 +187,7 @@ public class MainService {
                                 return indieGenre.getGenre().getName();
                             }).toList();
 
-                    return IndieResponse.LikeDetail.of(indieMovie, image, indieMovie.getAverageRating(), genres, like);
+                    return IndieResponse.LikeDetail.of(indieMovie, image, stillcut, indieMovie.getAverageRating(), genres, like);
                 }).toList();
 
         MainResponse.AllList<Integer, Float> mainResponse = MainResponse.AllList.of(orderByViews, orderByDate, orderByLikes, orderByAvg);
