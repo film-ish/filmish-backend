@@ -48,4 +48,8 @@ public class User {
     public String getRole(){
         return this.role.toString();
     }
+
+    public boolean getActive(){
+        return this.active;
+    }
 }
