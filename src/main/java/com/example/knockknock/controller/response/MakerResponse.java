@@ -3,6 +3,7 @@ package com.example.knockknock.controller.response;
 import com.example.knockknock.document.MakerDocument;
 import com.example.knockknock.entity.IndieMovie;
 import com.example.knockknock.entity.Maker;
+import com.example.knockknock.entity.Poster;
 import com.example.knockknock.entity.Type;
 import lombok.*;
 
@@ -70,18 +71,27 @@ public class MakerResponse {
     public static class Filmography {
         private Long movieId;
         private String movieName;
+        private String poster;
+        private String stillcut;
         private String pubDate;
 
-        public static Filmography of(IndieMovie movie) {
+        public static Filmography of(IndieMovie movie, Poster poster, String stillcut) {
             String pubDateStr = movie.getPubdate() != null
                     ? movie.getPubdate().toString()
                     : null;
 
+            String posterUrl = (poster != null) ? poster.getPoster() : null;
+
             return Filmography.builder()
                     .movieId(movie.getId())
                     .movieName(movie.getTitle())
+                    .poster(posterUrl)
+                    .stillcut(stillcut)
                     .pubDate(pubDateStr)
                     .build();
+        }
+        public static Filmography of(IndieMovie movie, Poster poster) {
+            return of(movie, poster, null);
         }
     }
     @Getter
@@ -107,6 +117,8 @@ public class MakerResponse {
                     .filmography(filmography)
                     .build();
         }
+
+        // 기존 메소드와의 호환성을 위해 오버로딩
 
         public static Detail of(MakerDocument maker, Long userId, String thumbnailImage, Long qnaCount, List<Filmography> filmography) {
             return Detail.builder()

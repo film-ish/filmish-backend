@@ -8,10 +8,7 @@ import com.example.knockknock.controller.response.ResponseCode;
 import com.example.knockknock.entity.*;
 import com.example.knockknock.error.code.ErrorCode;
 import com.example.knockknock.error.response.ApiErrorResponse;
-import com.example.knockknock.repository.MakerMovieRepository;
-import com.example.knockknock.repository.MakerRepository;
-import com.example.knockknock.repository.QnaRepository;
-import com.example.knockknock.repository.UserMakerRepository;
+import com.example.knockknock.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,6 +31,8 @@ public class MakerService {
     private final UserMakerRepository userMakerRepository;
     private final QnaRepository qnaRepository;
     private final MakerRepository makerRepository;
+    private final PosterRepository posterRepository;
+    private final StillcutRepository stillcutRepository;
 
     public ApiResponse makerList(int pageNum, int pageSize) {
         Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Direction.DESC, "maker.name"));
@@ -82,9 +81,52 @@ public class MakerService {
 
         List<MakerMovie> makerMovies = makerMovieRepository.findAllByMakerId(maker.getId());
 
-        List<MakerResponse.Filmography> filmography = makerMovies.stream()
-                .map(makerMovie -> MakerResponse.Filmography.of(makerMovie.getIndieMovie()))
+        // 영화 ID 목록 추출
+        List<Long> movieIds = makerMovies.stream()
+                .map(makerMovie -> makerMovie.getIndieMovie().getId())
                 .toList();
+
+        // 각 영화의 첫 번째 포스터 조회
+        Map<Long, String> moviePosterMap = new HashMap<>();
+        if (!movieIds.isEmpty()) {
+            List<Object[]> posters = posterRepository.findFirstPosterByMovieIds(movieIds);
+            for (Object[] poster : posters) {
+                Long movieId = (Long) poster[0];
+                String posterUrl = (String) poster[1];
+                moviePosterMap.put(movieId, posterUrl);
+            }
+        }
+
+        Map<Long, String> movieStillcutMap = new HashMap<>();
+        if (!movieIds.isEmpty()) {
+            // 스틸컷을 위한 유사한 쿼리 사용 (posterRepository에 유사한 메소드 추가 필요)
+            List<Object[]> stillcuts = stillcutRepository.findFirstStillcutByMovieIds(movieIds);
+            for (Object[] stillcut : stillcuts) {
+                Long movieId = (Long) stillcut[0];
+                String stillcutUrl = (String) stillcut[1];
+                movieStillcutMap.put(movieId, stillcutUrl);
+            }
+        }
+
+        List<MakerResponse.Filmography> filmography = makerMovies.stream()
+                .map(makerMovie -> {
+                    IndieMovie movie = makerMovie.getIndieMovie();
+                    Long movieId = movie.getId();
+                    String posterUrl = moviePosterMap.get(movieId);
+                    String stillcutUrl = movieStillcutMap.get(movieId);
+
+                    String imageUrl = posterUrl != null ? posterUrl : stillcutUrl;
+
+                    // 포스터 객체 생성 (null 안전성을 위해)
+                    Poster poster = null;
+                    if (imageUrl != null) {
+                        poster = new Poster();
+                        poster.setPoster(imageUrl);
+                    }
+
+                    return MakerResponse.Filmography.of(movie, poster);
+                })
+                .collect(Collectors.toList());
 
         MakerResponse.Detail detail = MakerResponse.Detail.of(
                 maker,
