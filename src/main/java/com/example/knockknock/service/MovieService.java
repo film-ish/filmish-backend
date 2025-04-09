@@ -139,7 +139,7 @@ public class MovieService {
     public ApiResponse listCommercial(){
         // 랜덤 숫자를 생성, 중복 방지를 위해 Set 사용
         Set<Long> randomIds = new HashSet<>();
-        while (randomIds.size() < 24) {
+        while (randomIds.size() < 30) {
             Long randomNumber = (long) (Math.random() * 226) + 1;
             randomIds.add(randomNumber);
         }
