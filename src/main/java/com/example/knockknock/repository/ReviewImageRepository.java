@@ -1,7 +1,9 @@
 package com.example.knockknock.repository;
 
+import com.example.knockknock.controller.response.ReviewImageResponse;
 import com.example.knockknock.entity.ReviewImage;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;

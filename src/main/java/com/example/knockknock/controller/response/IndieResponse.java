@@ -75,6 +75,8 @@ public class IndieResponse {
 
     @Getter
     @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
     public static class LikeDetail<T> {
         private Long id;
@@ -89,45 +91,23 @@ public class IndieResponse {
         @Builder.Default
         private Boolean like = false;
 
-        public static <T> LikeDetail<T> of(IndieMovie movie, String poster,
-                                           T value, List<String> genres){
-            return LikeDetail.<T>builder()
-                    .id(movie.getId())
-                    .title(movie.getTitle())
-                    .poster(poster)
-                    .pubDate(movie.getPubdate())
-                    .runningTime(movie.getRunningTime())
-                    .value(value)
-                    .genres(genres)
-                    .build();
-        }
-
-        public static <T> LikeDetail<T> of(IndieMovie movie, String poster, String stillcut,
-                                    T value, List<String> genres, Boolean like){
-            return LikeDetail.<T>builder()
-                    .id(movie.getId())
-                    .title(movie.getTitle())
-                    .poster(poster)
-                    .stillcut(stillcut)
-                    .pubDate(movie.getPubdate())
-                    .runningTime(movie.getRunningTime())
-                    .value(value)
-                    .genres(genres)
-                    .like(like!= null ? like : false)
-                    .build();
-        }
-
-        public static <T> LikeDetail<T> of(MovieDocument movie, String poster,
-                                           T value, List<String> genres){
-            return LikeDetail.<T>builder()
-                    .id(Long.parseLong(movie.getId()))
-                    .title(movie.getTitle())
-                    .poster(poster)
-                    .pubDate(movie.getPubDate())
-                    .runningTime(movie.getRunningTime())
-                    .value(value)
-                    .genres(genres)
-                    .build();
+        // Float 타입용 생성자
+        public static LikeDetail<Float> from(IndieMovie movie,
+                                             String poster,
+                                             String stillcut,
+                                             List<String> genres,
+                                             boolean like) {
+            LikeDetail<Float> detail = new LikeDetail<>();
+            detail.id = movie.getId();
+            detail.title = movie.getTitle();
+            detail.poster = poster;
+            detail.stillcut = stillcut;
+            detail.pubDate = movie.getPubdate();
+            detail.runningTime = movie.getRunningTime();
+            detail.value = movie.getAverageRating();
+            detail.genres = genres;
+            detail.like = like;
+            return detail;
         }
     }
 
@@ -136,18 +116,26 @@ public class IndieResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
-    public static class Approximate {
+    public static class StillcutDetail {
         private Long id;
         private String title;
         private float average;
         private String stillcut;
         private Boolean like;
 
-        public static Approximate of(IndieMovie movie, float average, String stillcut, boolean like){
-            return Approximate.builder()
+        public StillcutDetail(IndieMovie movie, String stillcut, boolean like){
+            this.id = movie.getId();
+            this.title = movie.getTitle();
+            this.average = movie.getAverageRating();
+            this.stillcut = stillcut;
+            this.like = like;
+        }
+
+        public static StillcutDetail of(IndieMovie movie, String stillcut, boolean like){
+            return StillcutDetail.builder()
                     .id(movie.getId())
                     .title(movie.getTitle())
-                    .average(average)
+                    .average(movie.getAverageRating())
                     .stillcut(stillcut)
                     .like(like)
                     .build();

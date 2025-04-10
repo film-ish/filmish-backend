@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,4 +33,13 @@ public class IndieMovie {
 
     @Column(length = 50, nullable = false)
     private String type;
+
+    @OneToMany(mappedBy = "indieMovie", fetch = FetchType.LAZY)
+    private List<Poster> posters;
+
+    @OneToMany(mappedBy = "indieMovie", fetch = FetchType.LAZY)
+    private List<Stillcut> stillcuts;
+
+    @OneToMany(mappedBy = "indieMovie", fetch = FetchType.LAZY)
+    private List<IndieGenre> genres;
 }
