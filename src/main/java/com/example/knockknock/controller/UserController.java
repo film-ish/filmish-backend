@@ -76,9 +76,10 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 수정함"),
     })
     public ApiResponse updateUser(@PathVariable Long userId,
-                                  @ModelAttribute UserRequest.Modify Modify){
+                                  @ModelAttribute UserRequest.Modify Modify,
+                                  @AuthenticationPrincipal CustomUserDetails userDetails){
 
-        return userService.updateUser(userId, Modify);
+        return userService.updateUser(userId, Modify, userDetails);
     }
 
 

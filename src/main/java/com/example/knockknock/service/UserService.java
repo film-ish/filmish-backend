@@ -198,7 +198,12 @@ public class UserService {
     }
 
     // 회원 정보 수정
-    public ApiResponse updateUser(Long userId, UserRequest.Modify Modify) {
+    public ApiResponse updateUser(Long userId, UserRequest.Modify Modify, CustomUserDetails userDetails) {
+        // 본인이 아닌 경우 수정 불가능
+        if (userDetails.getUserId() != userId){
+            return ApiErrorResponse.of(ErrorCode.BAD_REQUEST, "수정 권한이 없습니다.");
+        }
+
         MultipartFile imageFile = Modify.getImage();
         String nickname = Modify.getNickname();
         User userEntity = null;
@@ -321,7 +326,6 @@ public class UserService {
             log.info("이미지 파일이 비어있습니다.");
             return null;
         }
-
         try {
             // 원본 이미지 읽어오기
             BufferedImage originalImage = ImageIO.read(imageFile.getInputStream());

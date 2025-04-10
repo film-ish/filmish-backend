@@ -23,7 +23,7 @@ public class Qna extends BaseTimeEntity {
     @Column(name="title", nullable = false)
     private String title;
 
-    @Column(name="content", nullable = false)
+    @Column(columnDefinition = "TEXT", name="content", nullable = false)
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
