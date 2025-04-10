@@ -28,7 +28,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
                 Bucket.builder()
                         .addLimit(limit -> limit
                                 .capacity(5)
-                                .refillGreedy(5, Duration.ofMinutes(30))
+                                .refillGreedy(5, Duration.ofMinutes(1))
                         )
                         .build()
         );
