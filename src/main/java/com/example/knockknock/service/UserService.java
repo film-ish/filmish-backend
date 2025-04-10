@@ -43,7 +43,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final TokenListService tokenListService;
     private final TokenBlacklistService tokenBlacklistService;
     private final S3Service s3Service;
 

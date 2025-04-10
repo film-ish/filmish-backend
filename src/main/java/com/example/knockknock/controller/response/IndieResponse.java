@@ -3,6 +3,7 @@ package com.example.knockknock.controller.response;
 import com.example.knockknock.document.MovieDocument;
 import com.example.knockknock.entity.IndieMovie;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 import java.util.List;
@@ -78,6 +79,7 @@ public class IndieResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Slf4j
     public static class LikeDetail<T> {
         private Long id;
         private String title;
@@ -105,6 +107,27 @@ public class IndieResponse {
             detail.pubDate = movie.getPubdate();
             detail.runningTime = movie.getRunningTime();
             detail.value = movie.getAverageRating();
+            detail.genres = genres;
+            detail.like = like;
+            return detail;
+        }
+
+        // Long 타입용 생성자
+        public static LikeDetail<Long> from(IndieMovie movie,
+                                             String poster,
+                                             String stillcut,
+                                             Long likeCount,
+                                             List<String> genres,
+                                             boolean like) {
+            LikeDetail<Long> detail = new LikeDetail<>();
+            detail.id = movie.getId();
+            detail.title = movie.getTitle();
+            detail.poster = poster;
+            detail.stillcut = stillcut;
+            detail.pubDate = movie.getPubdate();
+            detail.runningTime = movie.getRunningTime();
+            log.info("입력된 likeCount = {}", likeCount);
+            detail.value = likeCount;
             detail.genres = genres;
             detail.like = like;
             return detail;

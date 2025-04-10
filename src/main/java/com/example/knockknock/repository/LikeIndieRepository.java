@@ -23,4 +23,7 @@ public interface LikeIndieRepository extends JpaRepository<LikeIndie, Long> {
 
     @Query("SELECT COUNT(li) > 0 FROM LikeIndie li WHERE li.indieMovie.id = :movieId AND li.user.id = :userId")
     Boolean existsByMovieAndUser(@Param("movieId") Long movieId, @Param("userId") Long userId);
+
+    @Query("SELECT COUNT(li) FROM LikeIndie li WHERE li.indieMovie.id = :movieId")
+    Long countByIndieMovieId(Long movieId);
 }
