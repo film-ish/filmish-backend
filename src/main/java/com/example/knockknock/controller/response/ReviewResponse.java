@@ -14,6 +14,7 @@ public class ReviewResponse {
     @Builder
     public static class Detail {
         private Long id;
+        private Long indieId;
         private String title;
         private String content;
         private String writerName;
@@ -26,6 +27,7 @@ public class ReviewResponse {
         public static ReviewResponse.Detail of(Review review, String writer, String writerImage, List<ReviewImageResponse.Detail> images){
             return Detail.builder()
                     .id(review.getId())
+                    .indieId(review.getIndieMovie().getId())
                     .title(review.getTitle())
                     .content(review.getContent())
                     .writerName(writer)
