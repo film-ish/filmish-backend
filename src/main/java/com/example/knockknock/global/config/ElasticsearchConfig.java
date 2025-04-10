@@ -39,8 +39,13 @@ public class ElasticsearchConfig {
         credentialsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials(username, password));
 
+        // esHost에서 호스트와 포트 파싱
+        String[] hostAndPort = esHost.split(":");
+        String host = hostAndPort[0];
+        int port = Integer.parseInt(hostAndPort[1]);
+
         RestClientBuilder builder = RestClient.builder(
-                new HttpHost("elasticsearch", 9200, "http"))
+                new HttpHost(host, port, "http"))
             .setHttpClientConfigCallback(httpClientBuilder ->
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
 

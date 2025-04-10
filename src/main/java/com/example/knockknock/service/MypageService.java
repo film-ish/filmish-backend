@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,15 +24,12 @@ import java.util.Optional;
 public class MypageService {
     private final LikeIndieRepository likeIndieRepository;
     private final IndieMovieRepository indieMovieRepository;
-    private final PosterRepository posterRepository;
-    private final IndieGenreRepository indieGenreRepository;
     private final RateRepository rateRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final QnaRepository qnaRepository;
     private final QnaCommentRepository qnaCommentRepository;
     private final ReviewCommentRepository reviewCommentRepository;
-    private final StillcutRepository stillcutRepository;
 
     public ApiResponse listLikeIndie(Long userId, int pageNum, int pageSize, CustomUserDetails userDetails) {
         if (userId != userDetails.getUserId()){
@@ -40,35 +38,14 @@ public class MypageService {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<IndieResponse.LikeDetail> likePage = likeIndieRepository.findByUserId(userId, pageable)
                 .map(likeIndie -> {
-                    IndieMovie movie = likeIndie.getIndieMovie();
-                    Long movieId = movie.getId();
-                    List<Poster> posters = posterRepository.findByIndieId(movieId).orElse(Collections.emptyList());
-                    List<IndieGenre> indieGenres = indieGenreRepository.findByIndieId(movieId).orElse(Collections.emptyList());
-
-                    List<String> categories = indieGenres
-                            .stream()
+                    IndieMovie indieMovie = likeIndie.getIndieMovie();
+                    String poster = indieMovie.getPosters().isEmpty() ? null : indieMovie.getPosters().get(0).getThumbnail();
+                    String stillcut = indieMovie.getStillcuts().isEmpty() ? null : indieMovie.getStillcuts().get(0).getStillcut();
+                    List<String> genres = indieMovie.getGenres().stream()
                             .map(indieGenre -> indieGenre.getGenre().getName())
-                            .toList();
+                            .collect(Collectors.toList());
 
-                    String posterUrl = posters.isEmpty() ? null : posters.get(0).getPoster();
-
-                    // 스틸컷 주소
-                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
-                    String stillcut = null;
-                    if(!stillcuts.isEmpty()){
-                        stillcut = stillcuts.get(0).getStillcut();
-                    }
-
-                    // 평점 계산
-                    List<Rate> rates = rateRepository.findAllByIndieId(movieId)
-                            .orElse(Collections.emptyList());
-
-                    float average = (float) rates.stream()
-                            .mapToDouble(Rate::getValue) // Rate 객체에서 평균값 추출
-                            .average()                   // 평균 계산 (OptionalDouble 반환)
-                            .orElse(0.0);         // 평균 값 없으면 0.0 반환
-
-                    return IndieResponse.LikeDetail.of(movie, posterUrl, stillcut, average, categories, true);
+                    return IndieResponse.LikeDetail.from(indieMovie, poster, stillcut, genres, true);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", likePage);
     }
@@ -80,13 +57,9 @@ public class MypageService {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<MypageResponse.RateDetail> ratePage = rateRepository.findByUserId(userId, pageable)
                 .map(rate -> {
-                    IndieMovie movie = rate.getIndieMovie();
-                    String poster = null;
-                    List<Poster> posters = posterRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
-                    if (!posters.isEmpty()){
-                        poster = posters.get(0).getPoster();
-                    }
-                    return MypageResponse.RateDetail.of(rate, movie, poster);
+                    IndieMovie indieMovie = rate.getIndieMovie();
+                    String poster = indieMovie.getPosters().isEmpty() ? null : indieMovie.getPosters().get(0).getThumbnail();
+                    return MypageResponse.RateDetail.of(rate, indieMovie, poster);
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", ratePage);
     }
@@ -101,9 +74,7 @@ public class MypageService {
                     IndieMovie movie = review.getIndieMovie();
                     Optional<List<ReviewImage>> imageList = reviewImageRepository.findByReviewId(review.getId());
                     List<String> images = imageList.isEmpty() ? null : imageList.get().stream()
-                            .map(reviewImage -> {
-                                return reviewImage.getPath();
-                            }).toList();
+                            .map(ReviewImage::getPath).toList();
 
                     return MypageResponse.ReviewDetail.of(review, movie, images);
                 });
@@ -162,9 +133,7 @@ public class MypageService {
         Optional<List<QnaComment>> replyList = qnaCommentRepository.findByUserId(userId);
         List<QnaComment> replies = replyList.isEmpty() ? null : replyList.get();
         List<Long> replyIds = replies.stream()
-                .map(qnaComment -> {
-                    return qnaComment.getId();
-                }).toList();
+                .map(QnaComment::getId).toList();
         Page<QnaResponse.Detail> qnaPage = qnaRepository.findDistinctQnasByCommentIds(replyIds, pageable)
                 .map(qna -> {
                     List<QnaComment> commentList = qnaCommentRepository.findByQnaId(qna.getId()).get();

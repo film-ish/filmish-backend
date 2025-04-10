@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,5 +19,12 @@ public interface StillcutRepository extends JpaRepository<Stillcut, Long> {
             "WHERE s.id = (SELECT MIN(s2.id) FROM Stillcut s2 WHERE s2.indieMovie.id = s.indieMovie.id) " +
             "AND s.indieMovie.id IN :movieIds")
     List<Object[]> findFirstStillcutByMovieIds(@Param("movieIds") List<Long> movieIds);
+
+    @Query("SELECT s.stillcut FROM Stillcut s " +
+            "WHERE s.indieMovie.id = :movieId")
+    List<String> findStillcutPathsByMovieId(
+            @Param("movieId") Long movieId,
+            Pageable pageable
+    );
 
 }

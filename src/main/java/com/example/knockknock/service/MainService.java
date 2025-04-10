@@ -4,9 +4,9 @@ import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.response.*;
 import com.example.knockknock.entity.*;
 import com.example.knockknock.repository.*;
-import com.nimbusds.jose.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +20,7 @@ public class MainService {
     private final ReviewRepository reviewRepository;
     private final IndieMovieRepository indieMovieRepository;
     private final LikeIndieRepository likeIndieRepository;
-    private final UserRepository userRepository;
     private final ReviewImageRepository reviewImageRepository;
-    private final RateRepository rateRepository;
-    private final StillcutRepository stillcutRepository;
-    private final PosterRepository posterRepository;
-    private final IndieGenreRepository indieGenreRepository;
 
     /*
      조회수 기준 베스트 리뷰 3개,
@@ -37,113 +32,60 @@ public class MainService {
         Long userId = userDetails != null ? userDetails.getUserId() : null;
 
         // 1. 조회수 기준 베스트 리뷰 3개
-        List<Review> SortByViews = reviewRepository.findAll(Sort.by(Sort.Direction.DESC, "views"))
-                .stream()
-                .limit(3)
-                .collect(Collectors.toList());
-
-        List<ReviewResponse.Detail> orderByViews = SortByViews.stream()
-                .filter(review -> {
-                    Optional<User> user = userRepository.findById(review.getUser().getId());
-                    return user.isPresent() && user.get().getActive();  // 탈퇴한 사용자는 제외
-                })
+        List<Review> reviews = reviewRepository.findBestReviews(
+                PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "views"))
+        );
+        List<ReviewResponse.Detail> orderByViews = reviews.stream()
                 .map(review -> {
-                    Optional<User> userEntity = userRepository.findById(review.getUser().getId());
+                    List<ReviewImage> images = reviewImageRepository.findByReviewId(review.getId()).orElse(Collections.emptyList());
+                    List<ReviewImageResponse.Detail> reviewImages = images.stream()
+                            .map(ReviewImageResponse.Detail::of)
+                            .collect(Collectors.toList());
 
-                    User writer = userEntity.isEmpty() ? null : userEntity.get();
-                    Optional<List<ReviewImage>> reviewImageList = reviewImageRepository.findByReviewId(review.getId());
-                    List<ReviewImage> reviewImages = reviewImageList.isEmpty() ? null : reviewImageList.get();
-
-                    List<ReviewImageResponse.Detail> images = null;
-                    if(reviewImages != null){
-                        images = reviewImages.stream()
-                                .map(reviewImage -> {
-                                    return ReviewImageResponse.Detail.of(reviewImage);
-                                }).toList();
-                    }
-
-                    return ReviewResponse.Detail.of(review, writer.getNickname(), writer.getHeadImage(), images);
+                    return ReviewResponse.Detail.of(
+                            review,
+                            review.getUser().getNickname(),
+                            review.getUser().getHeadImage(),
+                            reviewImages
+                    );
                 }).toList();
 
         // 2. 개봉일 기준 최신 독립 영화 10개
-        List<IndieMovie> latest = indieMovieRepository.findAll(Sort.by(Sort.Direction.ASC, "pubdate"))
-                .stream()
-                .limit(10)
-                .collect(Collectors.toList());
+        List<IndieMovie> latest = indieMovieRepository.findLatestMovies(
+                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "pubdate"))
+        );
 
-        List<IndieResponse.Approximate> orderByDate = latest.stream()
-                .filter(indieMovie -> {                 // 스틸컷 없는 영화는 필터링
-                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(indieMovie.getId())
-                            .orElse(Collections.emptyList());
-                    return !stillcuts.isEmpty();
-                })
+        List<IndieResponse.StillcutDetail> orderByDate = latest.stream()
                 .map(indieMovie -> {
                     Boolean like = false;
                     if(userId != null){
                         like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId).isPresent();
                     }
 
-                    // 평점 계산
-                    List<Rate> rates = rateRepository.findAllByIndieId(indieMovie.getId())
-                            .orElse(Collections.emptyList());
-
-                    float average = (float) rates.stream()
-                            .mapToDouble(Rate::getValue) // Rate 객체에서 평균값 추출
-                            .average()
-                            .orElse(0.0);         // 평균 값 없으면 0.0 반환
-
                     // 스틸컷 주소
-                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
-                    String stillcut = null;
-                    if(!stillcuts.isEmpty()){
-                        stillcut = stillcuts.get(0).getStillcut();
-                    }
-                    return IndieResponse.Approximate.of(indieMovie, average, stillcut, like);
+                    String stillcut = indieMovie.getStillcuts().isEmpty() ? null : indieMovie.getStillcuts().get(0).getStillcut();
+                    return IndieResponse.StillcutDetail.of(indieMovie, stillcut, like);
                 }).collect(Collectors.toList());
 
         // 3. 좋아요 개수 기준 영화 10개
-        List<IndieMovie> allMovies = indieMovieRepository.findAll();
-        List<Pair<IndieMovie, Integer>> likeMovies = allMovies.stream()
+        List<IndieMovie> bestMovies = indieMovieRepository.findBestMovies(
+                PageRequest.of(0, 10)
+        );
+
+        List<IndieResponse.LikeDetail<Float>> orderByLikes = bestMovies.stream()
                 .map(indieMovie -> {
-                    List<LikeIndie> likeMovie = likeIndieRepository.findByIndieId(indieMovie.getId())
-                            .orElse(Collections.emptyList());
-                    return Pair.of(indieMovie, likeMovie.size());
-                })
-                .sorted((a, b) -> b.getRight() - a.getRight()) // 좋아요 개수 기준 내림차순 정렬
-                .limit(10)
-                .toList();
-
-        List<IndieResponse.LikeDetail<Integer>> orderByLikes = likeMovies.stream()
-                .map(indieMovieIntegerPair -> {
-                    IndieMovie movie = indieMovieIntegerPair.getLeft();
-
                     Boolean like = false;
                     if(userId != null){
-                        like = likeIndieRepository.findByIndieMovieIdAndUserId(movie.getId(), userId).isPresent();
+                        like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId).isPresent();
                     }
 
-                    String image = null;
-                    List<Poster> posters = posterRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
-                    if(!posters.isEmpty()){
-                        image = posters.get(0).getPoster();
-                    }
-
-                    // 장르 데이터
-                    List<IndieGenre> genreList = indieGenreRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
-                    List<String> genres = genreList.stream()
-                            .map(indieGenre -> {
-                                return indieGenre.getGenre().getName();
-                            }).toList();
-
-                    // 스틸컷 주소
-                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(movie.getId()).orElse(Collections.emptyList());
-                    String stillcut = null;
-                    if(!stillcuts.isEmpty()){
-                        stillcut = stillcuts.get(0).getStillcut();
-                    }
-
-                    return IndieResponse.LikeDetail.of(movie, image, stillcut, indieMovieIntegerPair.getRight(), genres, like);
-                }).toList();
+                    String poster = indieMovie.getPosters().isEmpty() ? null : indieMovie.getPosters().get(0).getThumbnail();
+                    String stillcut = indieMovie.getStillcuts().isEmpty() ? null : indieMovie.getStillcuts().get(0).getStillcut();
+                    List<String> genres = indieMovie.getGenres().stream()
+                            .map(indieGenre -> indieGenre.getGenre().getName())
+                            .collect(Collectors.toList());
+                    return IndieResponse.LikeDetail.from(indieMovie, poster, stillcut, genres, like);
+                }).collect(Collectors.toList());
 
         /*
             sorted() -> 람다식 사용
@@ -152,53 +94,25 @@ public class MainService {
          */
 
         // 4. 평점 기준 영화 10개
-        List<IndieMovie> ratingMovies = indieMovieRepository.findAll(Sort.by(Sort.Direction.DESC, "averageRating"))
-                .stream()
-                .limit(10)
-                .collect(Collectors.toList());
+        List<IndieMovie> ratingMovies = indieMovieRepository.findRankedMovies(
+                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "averageRating"))
+        );
 
         List<IndieResponse.LikeDetail<Float>> orderByAvg = ratingMovies.stream()
                 .map(indieMovie -> {
-                    String image = null;
-                    List<Poster> posters = posterRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
-                    if(!posters.isEmpty()){
-                        image = posters.get(0).getPoster();
-                    }
-
                     Boolean like = false;
                     if(userId != null){
                         like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId).isPresent();
                     }
-
-                    // 평점 계산
-                /*
-                    List<Rate> rates = rateRepository.findByIndieId(indieMovie.getId())
-                            .orElse(Collections.emptyList());
-
-                    float average = (float) rates.stream()
-                            .mapToDouble(Rate::getValue) // Rate 객체에서 평균값 추출
-                            .average()
-                            .orElse(0.0);         // 평균 값 없으면 0.0 반환
-                */
-
-                    // 스틸컷 주소
-                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
-                    String stillcut = null;
-                    if(!stillcuts.isEmpty()){
-                        stillcut = stillcuts.get(0).getStillcut();
-                    }
-
-                    // 장르 데이터
-                    List<IndieGenre> genreList = indieGenreRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
-                    List<String> genres = genreList.stream()
-                            .map(indieGenre -> {
-                                return indieGenre.getGenre().getName();
-                            }).toList();
-
-                    return IndieResponse.LikeDetail.of(indieMovie, image, stillcut, indieMovie.getAverageRating(), genres, like);
+                    String poster = indieMovie.getPosters().isEmpty() ? null : indieMovie.getPosters().get(0).getThumbnail();
+                    String stillcut = indieMovie.getStillcuts().isEmpty() ? null : indieMovie.getStillcuts().get(0).getStillcut();
+                    List<String> genres = indieMovie.getGenres().stream()
+                            .map(indieGenre -> indieGenre.getGenre().getName())
+                            .collect(Collectors.toList());
+                    return IndieResponse.LikeDetail.from(indieMovie, poster, stillcut, genres, like);
                 }).toList();
 
-        MainResponse.AllList<Integer, Float> mainResponse = MainResponse.AllList.of(orderByViews, orderByDate, orderByLikes, orderByAvg);
+        MainResponse.AllList<Float, Float> mainResponse = MainResponse.AllList.of(orderByViews, orderByDate, orderByLikes, orderByAvg);
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회하였습니다.", mainResponse);
     }
 }

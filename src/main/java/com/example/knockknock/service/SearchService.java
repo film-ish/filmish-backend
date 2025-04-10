@@ -1,10 +1,7 @@
 package com.example.knockknock.service;
 
-import com.example.knockknock.controller.request.CustomUserDetails;
 import com.example.knockknock.controller.response.*;
 import com.example.knockknock.entity.*;
-import com.example.knockknock.error.code.ErrorCode;
-import com.example.knockknock.error.response.ApiErrorResponse;
 import com.example.knockknock.global.config.jwt.TokenProvider;
 import com.example.knockknock.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,19 +17,17 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class SearchService {
-    private final PosterRepository posterRepository;
     private final UserRepository userRepository;
-    private final IndieGenreRepository indieGenreRepository;
     private final QnaRepository qnaRepository;
     private final IndieMovieRepository indieMovieRepository;
     private final MakerRepository makerRepository;
     private final LikeIndieRepository likeIndieRepository;
-    private final StillcutRepository stillcutRepository;
     private final TokenProvider tokenProvider;
     private final RestHighLevelClient restHighLevelClient;
     private static final int PAGESIZE = 20;
@@ -64,9 +59,11 @@ public class SearchService {
         try {
             SearchRequest searchTitleRequest = new SearchRequest("movie_ngram");
             SearchSourceBuilder searchTitleSourceBuilder = new SearchSourceBuilder();
-            searchTitleSourceBuilder.query(QueryBuilders.matchQuery("title", query))
-                    .from(pageNum * PAGESIZE)
-                    .size(PAGESIZE);
+            searchTitleSourceBuilder.query(QueryBuilders.boolQuery()
+                            .should(QueryBuilders.matchBoolPrefixQuery("title", query))
+                            .should(QueryBuilders.wildcardQuery("title", "*" + query + "*")))
+                            .from(pageNum * PAGESIZE)
+                            .size(PAGESIZE);
             searchTitleRequest.source(searchTitleSourceBuilder);
 
             org.elasticsearch.action.search.SearchResponse searchMovieResponse =
@@ -79,31 +76,22 @@ public class SearchService {
                 if (movieId == null) continue;
 
                 IndieMovie movie = indieMovieRepository.findById(Long.parseLong(movieId)).orElse(null);
-
-                String poster = posterRepository.findByIndieId(Long.parseLong(movieId))
-                        .filter(list -> !list.isEmpty())
-                        .map(list -> list.get(0).getPoster())
-                        .orElse(null);
+                String poster = movie.getPosters().isEmpty() ? null : movie.getPosters().get(0).getThumbnail();
 
                 if (poster == null){
                     // 스틸컷 주소
-                    List<Stillcut> stillcuts = stillcutRepository.findByIndieId(Long.parseLong(movieId)).orElse(Collections.emptyList());
-                    String stillcut = null;
-                    if(!stillcuts.isEmpty()){
-                        poster = stillcuts.get(0).getStillcut();
+                    poster = movie.getStillcuts().isEmpty() ? null : movie.getStillcuts().get(0).getStillcut();
                     }
-                }
 
                 boolean like = false;
-
                 if (userId != null){
                     Optional<LikeIndie> optLikeIndie = likeIndieRepository.findByIndieMovieIdAndUserId(Long.parseLong(movieId), userId);
                     like = optLikeIndie.isPresent() ? true : false;
                 }
 
-                Optional<List<IndieGenre>> optGenres = indieGenreRepository.findByIndieId(Long.parseLong(movieId));
-                List<String> genres = optGenres.isPresent() && !optGenres.get().isEmpty() ?
-                        optGenres.get().stream().map(indieGenre -> indieGenre.getGenre().getName()).toList() : null;
+                List<String> genres = movie.getGenres().stream()
+                        .map(indieGenre -> indieGenre.getGenre().getName())
+                        .collect(Collectors.toList());
 
                 findTitleMovies.add(SearchResponse.MovieDetail.of(movie, poster, genres, like));
             }
@@ -232,37 +220,28 @@ public class SearchService {
             List<SearchResponse.MovieDetail> movies = new ArrayList<>();
             for (SearchHit hit : searchGenreResponse.getHits().getHits()) {
                 Map<String, Object> sourceMap = hit.getSourceAsMap();
-                String indieId = (String) sourceMap.get("movie_id");
-                if (indieId == null) continue;
+                String movieId = (String) sourceMap.get("movie_id");
+                if (movieId == null) continue;
 
-                Optional<IndieMovie> optIndieMovie = indieMovieRepository.findById(Long.parseLong(indieId));
-                if (optIndieMovie.isPresent()) {
-                    IndieMovie indieMovie = optIndieMovie.get();
-                    String poster = posterRepository.findByIndieId(indieMovie.getId())
-                            .filter(posterList -> !posterList.isEmpty())
-                            .map(posters -> posters.get(0).getPoster())
-                            .orElse(null);
+                IndieMovie movie = indieMovieRepository.findById(Long.parseLong(movieId)).orElse(null);
 
-                    if(poster == null){
-                        // 스틸컷 주소
-                        List<Stillcut> stillcuts = stillcutRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
-                        String stillcut = null;
-                        if(!stillcuts.isEmpty()){
-                            poster = stillcuts.get(0).getStillcut();
-                        }
-                    }
+                String poster = movie.getPosters().isEmpty() ? null : movie.getPosters().get(0).getThumbnail();
 
-                    boolean like = false;
-                    if (userId != null){
-                        Optional<LikeIndie> optLikeIndie = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId);
-                        like = optLikeIndie.isPresent() ? true : false;
-                    }
-
-                    Optional<List<IndieGenre>> optGenres = indieGenreRepository.findByIndieId(indieMovie.getId());
-                    List<String> genres = optGenres.isPresent() && !optGenres.get().isEmpty() ?
-                            optGenres.get().stream().map(indieGenre -> indieGenre.getGenre().getName()).toList() : null;
-                    movies.add(SearchResponse.MovieDetail.of(indieMovie, poster, genres, like));
+                if (poster == null) {
+                    // 스틸컷 주소
+                    poster = movie.getStillcuts().isEmpty() ? null : movie.getStillcuts().get(0).getStillcut();
                 }
+
+                boolean like = false;
+                if (userId != null) {
+                    Optional<LikeIndie> optLikeIndie = likeIndieRepository.findByIndieMovieIdAndUserId(Long.parseLong(movieId), userId);
+                    like = optLikeIndie.isPresent() ? true : false;
+                }
+
+                List<String> genres = movie.getGenres().stream()
+                        .map(indieGenre -> indieGenre.getGenre().getName())
+                        .collect(Collectors.toList());
+                movies.add(SearchResponse.MovieDetail.of(movie, poster, genres, like));
             }
             if (!movies.isEmpty()) {
                 findGenreMovies.add(SearchResponse.KeyMovies.of(query, movies));
@@ -302,36 +281,30 @@ public class SearchService {
             List<SearchResponse.MovieDetail> movies = new ArrayList<>();
             for (SearchHit hit : searchKeywordResponse.getHits().getHits()) {
                 Map<String, Object> sourceMap = hit.getSourceAsMap();
-                String indieId = (String) sourceMap.get("movie_id");
-                if (indieId == null) continue;
+                String movieId = (String) sourceMap.get("movie_id");
+                if (movieId == null) continue;
 
-                Optional<IndieMovie> optIndieMovie = indieMovieRepository.findById(Long.parseLong(indieId));
+                Optional<IndieMovie> optIndieMovie = indieMovieRepository.findById(Long.parseLong(movieId));
                 if (optIndieMovie.isPresent()) {
-                    IndieMovie indieMovie = optIndieMovie.get();
-                    String poster = posterRepository.findByIndieId(indieMovie.getId())
-                            .filter(posterList -> !posterList.isEmpty())
-                            .map(posters -> posters.get(0).getPoster())
-                            .orElse(null);
+                    IndieMovie movie = optIndieMovie.get();
 
-                    if(poster == null){
+                    String poster = movie.getPosters().isEmpty() ? null : movie.getPosters().get(0).getPoster();
+
+                    if (poster == null) {
                         // 스틸컷 주소
-                        List<Stillcut> stillcuts = stillcutRepository.findByIndieId(indieMovie.getId()).orElse(Collections.emptyList());
-                        String stillcut = null;
-                        if(!stillcuts.isEmpty()){
-                            poster = stillcuts.get(0).getStillcut();
-                        }
+                        poster = movie.getStillcuts().isEmpty() ? null : movie.getStillcuts().get(0).getStillcut();
                     }
 
                     boolean like = false;
-                    if (userId != null){
-                        Optional<LikeIndie> optLikeIndie = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId);
+                    if (userId != null) {
+                        Optional<LikeIndie> optLikeIndie = likeIndieRepository.findByIndieMovieIdAndUserId(Long.parseLong(movieId), userId);
                         like = optLikeIndie.isPresent() ? true : false;
                     }
 
-                    Optional<List<IndieGenre>> optGenres = indieGenreRepository.findByIndieId(indieMovie.getId());
-                    List<String> genres = optGenres.isPresent() && !optGenres.get().isEmpty() ?
-                            optGenres.get().stream().map(indieGenre -> indieGenre.getGenre().getName()).toList() : null;
-                    movies.add(SearchResponse.MovieDetail.of(indieMovie, poster, genres, like));
+                    List<String> genres = movie.getGenres().stream()
+                            .map(indieGenre -> indieGenre.getGenre().getName())
+                            .collect(Collectors.toList());
+                    movies.add(SearchResponse.MovieDetail.of(movie, poster, genres, like));
                 }
             }
             if (!movies.isEmpty()) {

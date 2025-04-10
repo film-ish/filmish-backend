@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query(value = "SELECT r FROM Review r WHERE r.indieMovie.id = :indieId",
             countQuery = "SELECT COUNT(r) FROM Review r WHERE r.indieMovie.id = :indieId")
@@ -15,4 +17,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query(value = "SELECT r FROM Review r WHERE r.user.id = :userId",
             countQuery = "SELECT COUNT(r) FROM Review r WHERE r.user.id = :userId")
     Page<Review> findByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT r from Review r " +
+            "WHERE r.user.active = true " +
+            "ORDER BY r.views DESC")
+    List<Review> findBestReviews(Pageable pageable);
 }
