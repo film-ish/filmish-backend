@@ -79,7 +79,7 @@ public class MovieService {
         }
 
         String accessToken = request.getHeader("access");
-        Boolean like = false;
+        boolean like = false;
         if (accessToken != null) {
             String userEmail = tokenProvider.getUserEmail(accessToken);
             User user = userRepository.findByEmail(userEmail).orElse(null);
@@ -198,7 +198,7 @@ public class MovieService {
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<IndieResponse.LikeDetail> moviePage = indieMovieRepository.findByGenreId(genreId, pageable)
                 .map(indieMovie -> {
-                    Boolean like = false;
+                    boolean like = false;
                     if(userId != null){
                         like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId).isPresent();
                     }
