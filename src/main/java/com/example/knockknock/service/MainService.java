@@ -57,7 +57,7 @@ public class MainService {
 
         List<IndieResponse.StillcutDetail> orderByDate = latest.stream()
                 .map(indieMovie -> {
-                    Boolean like = false;
+                    boolean like = false;
                     if(userId != null){
                         like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId).isPresent();
                     }
@@ -72,19 +72,22 @@ public class MainService {
                 PageRequest.of(0, 10)
         );
 
-        List<IndieResponse.LikeDetail<Float>> orderByLikes = bestMovies.stream()
+        List<IndieResponse.LikeDetail<Long>> orderByLikes = bestMovies.stream()
                 .map(indieMovie -> {
-                    Boolean like = false;
+                    boolean like = false;
                     if(userId != null){
                         like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId).isPresent();
                     }
 
                     String poster = indieMovie.getPosters().isEmpty() ? null : indieMovie.getPosters().get(0).getThumbnail();
                     String stillcut = indieMovie.getStillcuts().isEmpty() ? null : indieMovie.getStillcuts().get(0).getStillcut();
+
+                    Long likeCount = likeIndieRepository.countByIndieMovieId(indieMovie.getId());
+
                     List<String> genres = indieMovie.getGenres().stream()
                             .map(indieGenre -> indieGenre.getGenre().getName())
                             .collect(Collectors.toList());
-                    return IndieResponse.LikeDetail.from(indieMovie, poster, stillcut, genres, like);
+                    return IndieResponse.LikeDetail.from(indieMovie, poster, stillcut, likeCount, genres, like);
                 }).collect(Collectors.toList());
 
         /*
@@ -100,7 +103,7 @@ public class MainService {
 
         List<IndieResponse.LikeDetail<Float>> orderByAvg = ratingMovies.stream()
                 .map(indieMovie -> {
-                    Boolean like = false;
+                    boolean like = false;
                     if(userId != null){
                         like = likeIndieRepository.findByIndieMovieIdAndUserId(indieMovie.getId(), userId).isPresent();
                     }
@@ -112,7 +115,7 @@ public class MainService {
                     return IndieResponse.LikeDetail.from(indieMovie, poster, stillcut, genres, like);
                 }).toList();
 
-        MainResponse.AllList<Float, Float> mainResponse = MainResponse.AllList.of(orderByViews, orderByDate, orderByLikes, orderByAvg);
+        MainResponse.AllList<Long, Float> mainResponse = MainResponse.AllList.of(orderByViews, orderByDate, orderByLikes, orderByAvg);
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회하였습니다.", mainResponse);
     }
 }
