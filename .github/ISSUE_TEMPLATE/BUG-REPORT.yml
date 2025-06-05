@@ -1,0 +1,67 @@
+name: '🐛Bug Report'
+description: 버그 발생 시 알려주세요!
+title: '제목을 입력하세요'
+labels: ['bug']
+body:
+  - type: input
+    id: PR
+    attributes:
+      label: '관련 업데이트'
+      description: 관련 업데이트 내용이 있다면 작성해주세요.
+      value: '#'
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: '버그 설명'
+      description: 어떤 버그인가요?
+      placeholder: 버그에 대한 간략한 설명
+    validations:
+      required: true
+  - type: textarea
+    id: occur
+    attributes:
+      label: '버그 발생 방식'
+      description: 텍스트, 스크린샷 등 가능한 자세하게, 순서대로 기술해주세요.
+      value: |
+        1. 어디를 가서 '...'
+        2. 어떤 것을 클릭했더니 '...'
+        3. 화면에 '...'
+        4. 에러가 나왔다.
+    validations:
+      required: true
+  - type: textarea
+    id: response
+    attributes:
+      label: '예상 응답(선택)'
+      description: 정상적으로 동작했을 시 어떤 결과가 나왔을 것인지 작성해주세요.
+      placeholder: 정상적 동작 시 예상 응답
+    validations:
+      required: false
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: 'Browsers(선택)'
+      description: 어떤 Browser에서 발생한 버그인가요?(다중선택가능)
+      multiple: true
+      options:
+        - Firefox
+        - Chrome
+        - Safari
+        - Microsoft Edge
+        - Opera
+    validations:
+      required: false
+  - type: dropdown
+    id: os
+    attributes:
+      label: 'OS(선택)'
+      description: 어떤 OS에서 발생한 버그인가요?(다중선택가능)
+      multiple: true
+      options:
+        - Windows
+        - Linux
+        - Mac
+    validations:
+      required: false

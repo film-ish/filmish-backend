@@ -1,0 +1,45 @@
+name: 💻Backlog Create
+description: 앞으로 진행되어야할 작업을 추가해주세요!
+title: '제목을 입력하세요'
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: explanation
+    attributes:
+      label: '기능 설명'
+      description: 프로젝트에 추가되어야 할 기능에 대해 자세하게 설명해주세요.
+      placeholder: 추가되어야할 기능
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: '필요 이유(선택)'
+      description: 왜 해당 기능이 필요한가요?
+      placeholder: 기능이 필요한 이유
+    validations:
+      required: false
+  - type: textarea
+    id: benefit
+    attributes:
+      label: '기대 효과(선택)'
+      description: 해당 기능이 추가되면 무엇이 좋아지나요?
+      placeholder: 기대 효과
+    validations:
+      required: false
+  - type: textarea
+    id: reference
+    attributes:
+      label: '참고 자료(선택)'
+      description: 참고할만한 링크 및 이미지가 있다면 첨부해주세요.
+      placeholder: 이미지 혹은 링크
+    validations:
+      required: false
+  - type: textarea
+    id: etc
+    attributes:
+      label: 'etc(선택)'
+      description: 그 외, 추가 기능에 대한 의견이 있다면 남겨주세요.
+      placeholder: 추가 의견
+    validations:
+      required: false
