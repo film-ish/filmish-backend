@@ -13,10 +13,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
 @Configuration
 @Slf4j
+@EnableElasticsearchRepositories(basePackages = "com.example.knockknock.repository")
+@Profile("!dev")
 public class ElasticsearchConfig {
     @Value("${spring.elasticsearch.username}") // 환경 변수에서 사용자 이름 로드 (기본값: 빈 문자열)
     private String username;
