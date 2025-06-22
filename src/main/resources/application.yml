@@ -1,15 +1,17 @@
 spring:
   application:
     name: KnockKnock
+  profiles:
+    active: dev
 
-  elasticsearch:
-    uris: ${ELASTICSEARCH_URIS}
-    username: ${ELASTICSEARCH_USERNAME}
-    password: ${ELASTICSEARCH_PASSWORD}
-    data:
-      elasticsearch:
-        repositories:
-          enabled: true
+#  elasticsearch:
+#    uris: ${ELASTICSEARCH_URIS}
+#    username: ${ELASTICSEARCH_USERNAME}
+#    password: ${ELASTICSEARCH_PASSWORD}
+#    data:
+#      elasticsearch:
+#        repositories:
+#          enabled: true
 
   datasource:
     url: ${DB_URL}
@@ -44,7 +46,7 @@ spring:
 
 logging:
   level:
-    org.springframework: DEBUG
+    org.springframework: INFO
 
 image:
   resize:
