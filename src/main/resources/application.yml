@@ -9,7 +9,7 @@ spring:
     data:
       elasticsearch:
         repositories:
-          enabled: true
+          enabled: false
 
   datasource:
     url: ${DB_URL}

@@ -1,8 +1,13 @@
 package com.example.knockknock.controller;
 
+import com.example.knockknock.controller.domain.NewReview;
 import com.example.knockknock.controller.request.CustomUserDetails;
+import com.example.knockknock.controller.request.ReviewCreateRequest;
 import com.example.knockknock.controller.request.ReviewRequest;
 import com.example.knockknock.controller.response.ApiResponse;
+import com.example.knockknock.controller.response.ApiSuccessResponse;
+import com.example.knockknock.controller.response.DefaultIdResponse;
+import com.example.knockknock.controller.response.ResponseCode;
 import com.example.knockknock.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -24,8 +29,10 @@ public class ReviewController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 등록함")
     })
-    public ApiResponse writeReview(@ModelAttribute ReviewRequest.Create request, @AuthenticationPrincipal CustomUserDetails userDetails){
-        return reviewService.writeReview(request, userDetails);
+    public ApiResponse reviewCreate(@ModelAttribute ReviewCreateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails){
+        NewReview newReview = request.toNewReview();
+        DefaultIdResponse response = reviewService.reviewCreate(newReview, userDetails);
+        return ApiSuccessResponse.response(ResponseCode.Created, "리뷰가 성공적으로 등록되었습니다.", new DefaultIdResponse(response.id()));
     }
 
     @PutMapping("/{reviewId}")

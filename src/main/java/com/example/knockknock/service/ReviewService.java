@@ -1,6 +1,8 @@
 package com.example.knockknock.service;
 
+import com.example.knockknock.controller.domain.NewReview;
 import com.example.knockknock.controller.request.CustomUserDetails;
+import com.example.knockknock.controller.request.ReviewCreateRequest;
 import com.example.knockknock.controller.request.ReviewRequest;
 import com.example.knockknock.controller.response.*;
 import com.example.knockknock.entity.*;
@@ -36,6 +38,7 @@ public class ReviewService {
     private final IndieMovieRepository indieMovieRepository;
     private final ReviewCommentRepository reviewCommentRepository;
     private final MakerMovieRepository makerMovieRepository;
+    private final ReviewCreater reviewCreater;
 
     private final S3Service s3Service;
 
@@ -64,35 +67,21 @@ public class ReviewService {
                 });
         return ApiSuccessResponse.response(ResponseCode.Ok, "성공적으로 조회되었습니다.", reviewPage);
     }
-    
-    public ApiResponse writeReview(ReviewRequest.Create request, CustomUserDetails userDetails){
-        Long userId = userDetails.getUserId();
-        log.info("입력된 userId = " + userId);
-        log.info("입력된 indieId = " + request.getIndieId());
-        User user = userRepository.findById(userId).get();
-        IndieMovie indieMovie = indieMovieRepository.findById(request.getIndieId()).get();
 
-        Review newReview = Review.builder()
-                .title(request.getTitle())
-                .content(request.getContent())
-                .views(0)
-                .user(user)
-                .indieMovie(indieMovie)
-                .createdAt(Instant.now())
-                .build();
-
-        Review savedReview = reviewRepository.save(newReview);
-        if(request.getImages() != null && !request.getImages().isEmpty()) {
-            List<ReviewImage> reviewImages = request.getImages().stream()
+    @Transactional
+    public DefaultIdResponse reviewCreate(NewReview newReview, CustomUserDetails userDetails){
+        Review savedReview = reviewCreater.create(newReview, userDetails);
+        if(newReview.images() != null && !newReview.images().isEmpty()) {
+            List<ReviewImage> reviewImages = newReview.images().stream()
                     .map(image -> uploadSingleImage(savedReview, image))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             // 이미지 존재 여부 체크
             if (!reviewImages.isEmpty()) {
-                reviewImageRepository.saveAll(reviewImages);
+                reviewCreater.createReviewImage(reviewImages);
             }
         }
-        return ApiSuccessResponse.response(ResponseCode.Created, "리뷰가 성공적으로 등록되었습니다.", null);
+        return new DefaultIdResponse(savedReview.getId());
     }
 
     public ReviewImage uploadSingleImage(Review review, MultipartFile image){
